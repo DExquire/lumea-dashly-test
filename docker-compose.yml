@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lumea-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-lumea}
+      POSTGRES_USER: ${DATABASE_USERNAME:-lumea}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-lumea}
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - lumea-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME:-lumea} -d ${DATABASE_NAME:-lumea}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lumea-pgdata:
+    name: lumea-pgdata

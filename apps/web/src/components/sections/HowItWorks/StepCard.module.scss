@@ -1,0 +1,190 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(20);
+  width: 100%;
+  height: 100%;
+  padding: fn.rem(20) fn.rem(14);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-surface-muted);
+  /**
+   * The hairline is an inset ring, not a `border`: the design draws its 1px
+   * stroke inside the card without moving the content, while a real border
+   * would push everything down by a pixel — exactly enough to clip a covered
+   * card's tagline out of the 105px peek. The stacked shadow sits above the
+   * card, where the next one overlaps it.
+   */
+  box-shadow:
+    inset 0 0 0 1px var(--color-hairline),
+    var(--shadow-stacked);
+  transition: box-shadow t.$duration-base t.$ease-out;
+
+  /**
+   * In the design a card is roomy on its own (40px padding) and compact once
+   * the pile has formed (15px top and bottom, 20px at the sides), which is what
+   * lets a 105px peek show a covered card's number, title and tagline in full.
+   * `--stack-progress` is how far the stack has collapsed, so the card tightens
+   * with the pile instead of snapping between two states.
+   */
+  @include bp.from("lg") {
+    --step-collapse: var(--stack-progress, 0);
+
+    gap: calc(#{fn.rem(32)} - var(--step-collapse) * #{fn.rem(22)});
+    padding: calc(#{fn.rem(40)} - var(--step-collapse) * #{fn.rem(25)})
+      calc(#{fn.rem(40)} - var(--step-collapse) * #{fn.rem(20)});
+    box-shadow:
+      inset 0 0 0 1px var(--color-hairline),
+      var(--shadow-card),
+      var(--shadow-stacked);
+  }
+
+  /* Mint (02) and blush (04) cards from the design. */
+  &[data-tone="mint"] {
+    background-image: var(--gradient-step-treat);
+  }
+
+  &[data-tone="blush"] {
+    background-color: var(--color-surface);
+    background-image: var(--gradient-step-protect);
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(8);
+}
+
+.heading {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.headingButton {
+  @include mx.button-reset;
+  @include mx.focus-ring(6px);
+
+  display: flex;
+  align-items: flex-end;
+  gap: fn.rem(10);
+  width: 100%;
+  border-radius: fn.rem(8);
+}
+
+.numeral {
+  flex: none;
+  width: fn.rem(64);
+  height: fn.rem(32);
+  color: var(--color-border);
+
+  @include bp.from("lg") {
+    width: fn.rem(85);
+    height: fn.rem(42);
+  }
+}
+
+.title {
+  font-size: mx.fluid(36, 50);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-green);
+  transition: color t.$duration-fast t.$ease-out;
+
+  .headingButton:hover & {
+    color: var(--color-green-900);
+  }
+}
+
+.tagline {
+  font-family: var(--font-script), cursive;
+  font-size: mx.fluid(26, 32);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-sage);
+}
+
+/* Collapsed cards show only the head strip; the body fades out with the stack. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(20);
+
+  @include bp.from("lg") {
+    gap: fn.rem(32);
+  }
+}
+
+.description {
+  max-width: fn.rem(320);
+  font-size: mx.fluid(16, 18);
+  font-weight: 700;
+  line-height: fn.line-height(23.4, 18);
+  color: var(--color-text-muted);
+}
+
+.cta {
+  @include mx.button-reset;
+  @include mx.focus-ring(6px);
+
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: fn.rem(8);
+  padding-bottom: fn.rem(4);
+  border-bottom: 1px solid var(--color-ink);
+  color: var(--color-ink);
+  font-size: mx.fluid(18, 24);
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    color t.$duration-fast t.$ease-out,
+    border-color t.$duration-fast t.$ease-out,
+    gap t.$duration-fast t.$ease-out;
+
+  @include mx.hover {
+    gap: fn.rem(14);
+    color: var(--color-green-900);
+    border-color: var(--color-green-900);
+  }
+}
+
+.ctaIcon {
+  flex: none;
+  width: fn.rem(22);
+  height: fn.rem(22);
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  max-width: fn.rem(320);
+  aspect-ratio: 2.7;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface-muted);
+
+  @include bp.from("lg") {
+    max-width: fn.rem(400);
+    aspect-ratio: var(--image-ratio, 1.6);
+  }
+
+  &[data-align="end"] {
+    @include bp.from("lg") {
+      margin-inline-start: auto;
+      margin-inline-end: fn.rem(-28);
+    }
+  }
+}
+
+.image {
+  object-fit: cover;
+}
+
+.srOnly {
+  @include mx.visually-hidden;
+}

@@ -1,0 +1,175 @@
+@use "functions" as fn;
+@use "breakpoints" as bp;
+@use "mixins" as mx;
+@use "tokens" as t;
+
+/**
+ * Design tokens, straight from the Figma file.
+ */
+:root {
+  /* Text and surfaces */
+  --color-ink: #212721;
+  --color-ink-soft: #2b2b2b;
+  --color-text: #000000;
+  --color-text-secondary: #505050;
+  --color-text-muted: #858585;
+  --color-sage: #9aada7;
+  --color-sage-tint: #bcc9c5;
+  --color-border: #bfbfbf;
+  --color-hairline: #f0f5f6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f5f5;
+  --color-surface-hero: #fdfdfd;
+
+  /* Accents */
+  --color-green: #63cc96;
+  --color-green-50: #e5f7ed;
+  --color-green-100: #d1f0e0;
+  --color-green-300: #92dbb6;
+  --color-green-900: #32664b;
+  --color-cyan: #00c0e8;
+  --color-cyan-deep: #00c3d0;
+  --color-teal: #00c8b3;
+  --color-pink: #fecbe4;
+  --color-pink-deep: #d97a81;
+  --color-blue-mist: #dae8ff;
+  --color-rose-mist: #ffc0c0;
+
+  --color-focus: #00c3d0;
+
+  /* The soft six-layer shadow used across the whole design */
+  --shadow-soft:
+    1px 2px 4px rgba(156, 182, 186, 0.1), 2px 6px 7px rgba(156, 182, 186, 0.09),
+    5px 14px 9px rgba(156, 182, 186, 0.05), 8px 26px 11px rgba(156, 182, 186, 0.01),
+    -12px -8px 16px rgba(154, 173, 167, 0.16);
+
+  /* Cards and other large surfaces */
+  --shadow-card:
+    1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),
+    12px 20px 16px rgba(156, 182, 186, 0.09), 8px 26px 14px rgba(156, 182, 186, 0.09),
+    -20px 40px 30px rgba(156, 182, 186, 0.06);
+
+  /* Floating elements that also lift upwards (favourite button, section title) */
+  --shadow-float:
+    1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),
+    12px 20px 16px rgba(156, 182, 186, 0.09), 8px 26px 14px rgba(156, 182, 186, 0.09),
+    -20px 40px 30px rgba(156, 182, 186, 0.06), -12px -40px 30px rgba(156, 182, 186, 0.1);
+
+  /* Stacked cards need a shadow above them, where the next card overlaps */
+  --shadow-stacked: 0 -12px 12px rgba(154, 173, 167, 0.2);
+
+  /* Radii */
+  --radius-xs: #{fn.rem(8)};
+  --radius-sm: #{fn.rem(12)};
+  --radius-md: #{fn.rem(20)};
+  --radius-lg: #{fn.rem(24)};
+  --radius-xl: #{fn.rem(30)};
+  --radius-2xl: #{fn.rem(32)};
+  --radius-pill: 100px;
+
+  /* Gradients */
+  --gradient-hairline: linear-gradient(180deg, #f3f5f5 0%, #f5fcfd 100%);
+  --gradient-title: linear-gradient(180deg, #f3f5f5 0%, #f5fcfd 100%);
+  --gradient-step-treat: linear-gradient(150deg, rgba(229, 247, 237, 0.9) 0%, rgba(146, 219, 182, 0.9) 100%);
+  --gradient-step-protect: radial-gradient(120% 120% at 82% 18%, rgba(217, 122, 129, 0.45) 13%, rgba(254, 203, 228, 0.55) 60%);
+
+  /* Layout — `--container-max` is the *content* width (1280px at 1440px),
+     so containers add the gutters on top of it. */
+  --container-max: #{t.$container-max};
+  --container-outer: calc(#{t.$container-max} + var(--gutter) * 2);
+  --gutter: #{t.$gutter-mobile};
+  --stack-top: #{t.$stack-top-mobile};
+  --stack-peek: #{t.$stack-peek-mobile};
+
+  @include bp.from("md") {
+    --gutter: #{t.$gutter-tablet};
+  }
+
+  @include bp.from("lg") {
+    /* The desktop hero is a fixed composition: the visuals are placed in % of
+       the content column while the copy sits at a fixed offset from its edge.
+       A constant 80px gutter would push the copy into the artwork between the
+       two Figma frames, so the gutter interpolates from the tablet value at
+       1024 up to the design value at 1440 and the whole block breathes. */
+    --gutter: #{mx.fluid(t.$gutter-tablet, t.$gutter-desktop, 1024, 1440)};
+    --stack-top: #{t.$stack-top-desktop};
+    --stack-peek: #{t.$stack-peek-desktop};
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Smooth anchor scrolling, unless the visitor asked for less motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans), "Manrope", system-ui, -apple-system, sans-serif;
+  font-size: fn.rem(16);
+  line-height: 1.1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+fieldset,
+legend {
+  margin: 0;
+  padding: 0;
+}
+
+fieldset {
+  border: 0;
+  min-width: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+s {
+  text-decoration-thickness: from-font;
+}
+
+::selection {
+  background-color: var(--color-green-100);
+  color: var(--color-ink);
+}

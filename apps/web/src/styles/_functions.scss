@@ -1,0 +1,34 @@
+@use "sass:math";
+
+/// Root font size the design is based on.
+$root-font-size: 16;
+
+/// Converts a px value from Figma into rem, so the layout scales with the
+/// user's browser font size instead of being locked to pixels.
+/// rem(24) -> 1.5rem
+@function rem($px) {
+  @if math.is-unitless($px) {
+    @return math.div($px, $root-font-size) * 1rem;
+  }
+
+  @return math.div(math.div($px, 1px), $root-font-size) * 1rem;
+}
+
+/// Strips the unit off a value: strip-unit(24px) -> 24
+@function strip-unit($value) {
+  @if math.is-unitless($value) {
+    @return $value;
+  }
+
+  @return math.div($value, ($value * 0 + 1));
+}
+
+/// Unitless line-height straight from Figma: line-height(24, 20) -> 1.2
+@function line-height($line-height-px, $font-size-px) {
+  @return math.div(strip-unit($line-height-px), strip-unit($font-size-px));
+}
+
+/// Figma letter-spacing (in %) as an em value: tracking(-2) -> -0.02em
+@function tracking($percent) {
+  @return math.div($percent, 100) * 1em;
+}

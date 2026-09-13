@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_product_variation_groups",
+  "info": {
+    "displayName": "Variation group",
+    "icon": "layer",
+    "description": "A named group of variations, e.g. \"Skin type\" with Dry / Normal / Sensitive. Both the name and the values are free-form, so every product can have its own variation types."
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 60
+    },
+    "values": {
+      "type": "component",
+      "repeatable": true,
+      "component": "product.variation-value",
+      "required": true
+    }
+  }
+}

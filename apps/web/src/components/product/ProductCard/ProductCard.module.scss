@@ -1,0 +1,138 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(16);
+  /* Cards keep a constant width and stretch to the tallest card in the rail, so
+     a longer title or an extra variation group never changes the card size. */
+  width: fn.rem(264);
+  height: 100%;
+  padding: fn.rem(8);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  /* Fixed ratio from the design: the image box never shifts while loading. */
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-muted);
+}
+
+.image {
+  object-fit: cover;
+}
+
+.imageFallback {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(135deg, var(--color-surface-muted) 0%, var(--color-green-50) 100%);
+}
+
+.badges {
+  position: absolute;
+  top: fn.rem(4);
+  left: fn.rem(4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: fn.rem(4);
+  max-width: calc(100% - #{fn.rem(8)});
+}
+
+.favourite {
+  @include mx.button-reset;
+  @include mx.focus-ring;
+
+  position: absolute;
+  right: fn.rem(8);
+  bottom: fn.rem(8);
+  display: grid;
+  place-items: center;
+  width: fn.rem(44);
+  height: fn.rem(44);
+  border-radius: 50%;
+  background-color: var(--color-surface-muted);
+  box-shadow: var(--shadow-card);
+  color: var(--color-ink);
+  transition:
+    color t.$duration-fast t.$ease-out,
+    background-color t.$duration-fast t.$ease-out;
+
+  @include mx.hover {
+    background-color: var(--color-surface);
+    color: var(--color-green);
+  }
+
+  &[aria-pressed="true"] {
+    background-color: var(--color-green-50);
+    color: var(--color-green-900);
+  }
+}
+
+.favouriteIcon {
+  width: fn.rem(22);
+  height: fn.rem(20);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: fn.rem(12);
+  padding-bottom: fn.rem(4);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(12);
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  font-size: fn.rem(18);
+  font-weight: 700;
+  line-height: fn.line-height(21.6, 18);
+  color: var(--color-ink);
+}
+
+.volume {
+  font-weight: 700;
+}
+
+.variations {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(12);
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(8);
+  padding-top: fn.rem(12);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(6);
+}
+
+/* The design aligns the label to the left with the arrow after it. */
+.action {
+  width: 100%;
+  justify-content: flex-start;
+}

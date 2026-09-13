@@ -1,0 +1,47 @@
+@use "sass:map";
+
+/// Design is mobile-first: 375px is the base, 1440px the desktop reference.
+/// The intermediate breakpoints exist so the layout keeps making sense between
+/// the two Figma frames instead of jumping from one to the other.
+$breakpoints: (
+  "xs": 375px,
+  "sm": 480px,
+  "md": 768px,
+  "lg": 1024px,
+  "xl": 1280px,
+  "xxl": 1440px,
+);
+
+/// Width of the mobile Figma frame.
+$design-width-mobile: 375;
+
+/// Width of the desktop Figma frame.
+$design-width-desktop: 1440;
+
+@function bp($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error "Unknown breakpoint `#{$name}`. Available: #{map.keys($breakpoints)}.";
+  }
+
+  @return map.get($breakpoints, $name);
+}
+
+/// Mobile-first media query: styles apply from the given breakpoint upwards.
+@mixin from($name) {
+  @media (min-width: bp($name)) {
+    @content;
+  }
+}
+
+/// Escape hatch for the rare case where a rule must stay below a breakpoint.
+@mixin until($name) {
+  @media (max-width: (bp($name) - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin between($from, $until) {
+  @media (min-width: bp($from)) and (max-width: (bp($until) - 0.02px)) {
+    @content;
+  }
+}

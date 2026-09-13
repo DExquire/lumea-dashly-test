@@ -1,0 +1,27 @@
+@use "functions" as fn;
+
+.main {
+  display: flex;
+  flex-direction: column;
+}
+
+.skipLink {
+  position: absolute;
+  top: fn.rem(8);
+  left: 50%;
+  z-index: 200;
+  padding: fn.rem(12) fn.rem(20);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  font-size: fn.rem(14);
+  font-weight: 700;
+  transform: translate(-50%, -200%);
+  transition: transform 160ms ease-out;
+
+  &:focus-visible {
+    transform: translate(-50%, 0);
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,161 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+
+  @include bp.from("lg") {
+    /* Desktop shows the products inline; the overlay is mobile-only. */
+    display: none;
+  }
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(33, 39, 33, 0.32);
+  opacity: 0;
+  transition: opacity t.$duration-base t.$ease-out;
+
+  .root[data-state="open"] & {
+    opacity: 1;
+  }
+}
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(24);
+  width: 100%;
+  max-height: 100%;
+  padding: fn.rem(20) var(--gutter) fn.rem(24);
+  border-start-start-radius: fn.rem(32);
+  border-start-end-radius: fn.rem(32);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  transform: translateY(6%);
+  opacity: 0;
+  transition:
+    transform t.$duration-base t.$ease-out,
+    opacity t.$duration-base t.$ease-out;
+
+  .root[data-state="open"] & {
+    transform: none;
+    opacity: 1;
+  }
+
+  @include mx.reduced-motion {
+    transition-duration: 1ms;
+    transform: none;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(12);
+}
+
+.close {
+  @include mx.button-reset;
+  @include mx.focus-ring;
+
+  align-self: flex-end;
+  display: grid;
+  place-items: center;
+  width: fn.rem(40);
+  height: fn.rem(40);
+  border-radius: 50%;
+  background-color: var(--color-sage-tint);
+  color: var(--color-surface);
+  transition: background-color t.$duration-fast t.$ease-out;
+
+  @include mx.hover {
+    background-color: var(--color-ink);
+  }
+}
+
+.title {
+  font-size: fn.rem(24);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(16);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(12);
+}
+
+.footerLabel {
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: fn.rem(8);
+  width: 100%;
+}
+
+.step {
+  @include mx.button-reset;
+  @include mx.focus-ring;
+
+  display: flex;
+  align-items: center;
+  gap: fn.rem(8);
+  padding: fn.rem(10) fn.rem(14);
+  border: 1px solid var(--color-hairline);
+  border-radius: fn.rem(100);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-ink);
+  transition:
+    background-color t.$duration-base t.$ease-out,
+    color t.$duration-base t.$ease-out;
+}
+
+.stepActive {
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.stepNumeral {
+  flex: none;
+  width: fn.rem(44);
+  height: fn.rem(22);
+  color: var(--color-border);
+
+  .stepActive & {
+    color: var(--color-sage);
+  }
+}
+
+.stepTitle {
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: 1;
+}

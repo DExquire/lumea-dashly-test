@@ -1,0 +1,75 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  /* The mobile frame keeps the bar 354px wide inside a 375px screen. */
+  padding-inline: fn.rem(10.5);
+
+  @include bp.from("lg") {
+    padding-inline: 0;
+  }
+}
+
+/**
+ * Every message occupies the same single grid cell, so the bar is already as
+ * tall as its tallest message on the first paint: swapping messages can never
+ * change the header height or shift anything below it.
+ */
+.viewport {
+  display: grid;
+  grid-template-areas: "message";
+  place-items: center;
+  width: 100%;
+  min-height: fn.rem(44);
+  /* Narrower inline padding than the Figma frame so the default message fits on
+     one line at 375px; the bar itself keeps the designed width. A longer message
+     still wraps, and because all messages share one grid cell the bar's height
+     is set by the tallest of them from the first paint — never on switch. */
+  padding: fn.rem(10) fn.rem(20);
+  background-color: var(--color-ink);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-surface);
+  text-align: center;
+
+  @include bp.from("lg") {
+    width: auto;
+    padding: fn.rem(10) fn.rem(20);
+  }
+}
+
+.message {
+  grid-area: message;
+  font-size: fn.rem(16);
+  /* The mobile frame uses the regular weight, the desktop one bold. */
+  font-weight: 400;
+  line-height: fn.line-height(17.6, 16);
+  opacity: 0;
+  transform: translateY(fn.rem(6));
+  transition:
+    opacity t.$duration-base t.$ease-out,
+    transform t.$duration-base t.$ease-out;
+  /* Inactive messages must not be clickable or selectable. */
+  pointer-events: none;
+  visibility: hidden;
+
+  @include bp.from("lg") {
+    font-weight: 700;
+  }
+
+  &[data-active] {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  @include mx.reduced-motion {
+    transition-duration: 1ms;
+    transform: none;
+  }
+}

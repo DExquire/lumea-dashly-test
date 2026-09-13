@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+build
+dist
+.strapi
+apps/cms/types/generated
+package-lock.json

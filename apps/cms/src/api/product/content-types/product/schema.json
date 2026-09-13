@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product",
+    "description": "Products rendered as product cards inside the \"How it works\" section."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 120
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "volume": {
+      "type": "string",
+      "maxLength": 30,
+      "description": "Volume or quantity as it should be displayed, e.g. \"30 ml\"."
+    },
+    "price": {
+      "type": "decimal",
+      "required": true,
+      "min": 0,
+      "description": "Regular price. Leave sale price and discount empty when the product is not discounted."
+    },
+    "salePrice": {
+      "type": "decimal",
+      "min": 0,
+      "description": "Actual price after the discount. Fill in EITHER this OR the discount percent — the other one is calculated on the frontend."
+    },
+    "discountPercent": {
+      "type": "decimal",
+      "min": 0,
+      "max": 100,
+      "description": "Discount in percent. Fill in EITHER this OR the sale price."
+    },
+    "badges": {
+      "type": "component",
+      "repeatable": true,
+      "component": "product.badge"
+    },
+    "variationGroups": {
+      "type": "component",
+      "repeatable": true,
+      "component": "product.variation-group"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "inversedBy": "products"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,68 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: fn.rem(12);
+  align-self: flex-start;
+  max-width: 100%;
+  padding: fn.rem(4);
+  border: 1px solid var(--color-hairline);
+  border-radius: fn.rem(200);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  /* More categories than fit are reachable by scrolling the pill itself, so the
+     row never wraps into a second line or pushes the products down. */
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include bp.from("lg") {
+    gap: fn.rem(24);
+  }
+}
+
+.item {
+  @include mx.button-reset;
+  @include mx.focus-ring;
+
+  flex: none;
+  padding: fn.rem(14) fn.rem(24);
+  border-radius: fn.rem(200);
+  color: var(--color-ink);
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(23.4, 18);
+  white-space: nowrap;
+  transition:
+    background-color t.$duration-base t.$ease-out,
+    color t.$duration-base t.$ease-out,
+    box-shadow t.$duration-base t.$ease-out;
+
+  @include mx.hover {
+    color: var(--color-green-900);
+    background-color: var(--color-green-50);
+  }
+
+  @include bp.from("lg") {
+    padding: fn.rem(24) fn.rem(32);
+    font-size: fn.rem(18);
+  }
+}
+
+.active {
+  background-color: var(--color-ink);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-surface);
+
+  @include mx.hover {
+    background-color: var(--color-ink);
+    color: var(--color-surface);
+  }
+}

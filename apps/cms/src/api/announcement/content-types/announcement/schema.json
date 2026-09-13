@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "announcements",
+  "info": {
+    "singularName": "announcement",
+    "pluralName": "announcements",
+    "displayName": "Announcement",
+    "description": "Messages rotating in the announcement bar above the header. Use \"Sort order\" to change the sequence."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "message": {
+      "type": "string",
+      "required": true,
+      "maxLength": 180
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    }
+  }
+}

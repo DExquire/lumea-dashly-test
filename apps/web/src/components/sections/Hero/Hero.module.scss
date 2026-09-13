@@ -1,0 +1,245 @@
+@use "sass:math";
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: fn.rem(807);
+  overflow: hidden;
+  border-end-start-radius: fn.rem(40);
+  border-end-end-radius: fn.rem(40);
+  background-color: var(--color-surface-muted);
+  box-shadow: var(--shadow-soft);
+  isolation: isolate;
+
+  @include bp.from("lg") {
+    min-height: fn.rem(936);
+    border-radius: fn.rem(24);
+    background-color: var(--color-surface-hero);
+    box-shadow: none;
+  }
+}
+
+/**
+ * The three blurred colour washes from the design, as gradients: they follow the
+ * viewport instead of being a fixed-size image, and cost nothing to load.
+ */
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(38% 34% at 84% 26%, rgba(0, 195, 208, 0.35) 0%, rgba(0, 195, 208, 0) 100%),
+    radial-gradient(58% 48% at 74% 8%, rgba(255, 192, 192, 0.5) 0%, rgba(255, 192, 192, 0) 100%),
+    radial-gradient(72% 56% at 12% 4%, rgba(218, 232, 255, 0.45) 0%, rgba(218, 232, 255, 0) 100%),
+    linear-gradient(180deg, rgba(243, 245, 245, 0) 55%, rgba(214, 235, 236, 0.55) 100%);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: var(--container-outer);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-top: fn.rem(34);
+  padding-bottom: fn.rem(40);
+
+  @include bp.from("lg") {
+    display: block;
+    flex: 1;
+    /* The header block above takes 178px, and the design puts the h1 at 186px
+       from the top of the hero. */
+    padding-top: fn.rem(8);
+    padding-bottom: 0;
+  }
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(25);
+  width: 100%;
+  text-align: center;
+
+  @include bp.from("lg") {
+    align-items: flex-start;
+    gap: 0;
+    text-align: left;
+  }
+}
+
+.title {
+  max-width: fn.rem(340);
+  font-size: mx.fluid(40, 125);
+  font-weight: 700;
+  line-height: fn.line-height(36, 40);
+  letter-spacing: fn.tracking(-2);
+  color: var(--color-ink);
+
+  @include bp.from("lg") {
+    max-width: none;
+    width: 100%;
+    padding-left: fn.rem(20);
+    line-height: fn.line-height(100, 125);
+    letter-spacing: fn.tracking(-2);
+  }
+}
+
+/* On desktop the accent word drops to its own right-aligned line. */
+.titleAccent {
+  color: var(--color-cyan);
+
+  @include bp.from("lg") {
+    display: block;
+    padding-right: fn.rem(34);
+    text-align: right;
+  }
+}
+
+.subtitle {
+  max-width: fn.rem(240);
+  font-size: mx.fluid(18, 28);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+
+  @include bp.from("lg") {
+    position: absolute;
+    top: fn.rem(143);
+    left: math.percentage(math.div(110, 1440));
+    max-width: fn.rem(400);
+    color: var(--color-cyan-deep);
+  }
+}
+
+.ctaGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(8);
+
+  @include bp.from("lg") {
+    align-items: flex-start;
+    margin-top: fn.rem(112);
+    margin-left: fn.rem(20);
+  }
+}
+
+.kicker {
+  font-size: mx.fluid(14, 18);
+  font-weight: 700;
+  line-height: fn.line-height(23.4, 18);
+  color: var(--color-text);
+  letter-spacing: fn.tracking(-2);
+
+  @include bp.from("lg") {
+    letter-spacing: 0;
+  }
+}
+
+/* Desktop-only visual composition; on mobile the Figma frame shows copy only. */
+.visuals {
+  display: none;
+
+  @include bp.from("lg") {
+    display: block;
+  }
+}
+
+.portrait {
+  position: absolute;
+  top: fn.rem(260);
+  left: math.percentage(math.div(486, 1440));
+  width: math.percentage(math.div(562, 1440));
+  aspect-ratio: 562 / 374;
+  overflow: hidden;
+  border-radius: fn.rem(30);
+}
+
+.portraitImage,
+.detailImage,
+.essentialsImage {
+  object-fit: cover;
+}
+
+.detail {
+  position: absolute;
+  top: fn.rem(290);
+  left: math.percentage(math.div(1127, 1440));
+  width: math.percentage(math.div(184, 1440));
+  aspect-ratio: 184 / 129;
+  overflow: hidden;
+  border-radius: fn.rem(20);
+  background-color: var(--color-surface);
+}
+
+.essentials {
+  position: absolute;
+  isolation: isolate;
+  top: fn.rem(408);
+  left: math.percentage(math.div(1094, 1440));
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(12);
+  width: math.percentage(math.div(246, 1440));
+  min-width: fn.rem(220);
+  padding: fn.rem(25) fn.rem(20) fn.rem(12);
+  border-radius: fn.rem(32);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+/* The bottle overlaps the top edge of the card, as in the design. */
+.essentialsMedia {
+  position: absolute;
+  z-index: -1;
+  top: fn.rem(-95);
+  left: 50%;
+  width: fn.rem(127);
+  height: fn.rem(155);
+  transform: translateX(-50%);
+}
+
+.essentialsTitle {
+  font-size: fn.rem(24);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink-soft);
+}
+
+.essentialsText {
+  font-size: fn.rem(16);
+  font-weight: 500;
+  line-height: fn.line-height(18.56, 16);
+  color: var(--color-text);
+}
+
+.trust {
+  margin-top: fn.rem(35);
+  padding: fn.rem(20);
+  border-radius: fn.rem(12);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(17.6, 16);
+  color: var(--color-text-secondary);
+  text-align: center;
+
+  @include bp.from("lg") {
+    position: absolute;
+    right: math.percentage(math.div(187, 1440));
+    bottom: fn.rem(38);
+    margin-top: 0;
+    width: math.percentage(math.div(331, 1440));
+  }
+}

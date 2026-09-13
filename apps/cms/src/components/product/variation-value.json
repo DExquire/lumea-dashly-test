@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_product_variation_values",
+  "info": {
+    "displayName": "Variation value",
+    "icon": "bulletList",
+    "description": "One selectable value inside a variation group, e.g. \"30 ml\" or \"Hyaluronic Acid 2%\"."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "maxLength": 60
+    }
+  }
+}

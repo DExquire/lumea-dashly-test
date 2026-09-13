@@ -1,0 +1,27 @@
+@use "functions" as fn;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  padding: fn.rem(8) fn.rem(12);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-soft);
+  font-size: fn.rem(18);
+  font-weight: 700;
+  line-height: fn.line-height(23.4, 18);
+  white-space: nowrap;
+}
+
+/* Sale / New / Bestseller are the dark pills used throughout the design. */
+.sale,
+.new,
+.bestseller {
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+}
+
+/* Fallback tone for any other label an editor adds in the CMS. */
+.neutral {
+  background-color: var(--color-surface-muted);
+  color: var(--color-ink);
+}

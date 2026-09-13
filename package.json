@@ -1,0 +1,36 @@
+{
+  "name": "lumea-dashly-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashly Studio test task — LUMEA Home Page fragment (Next.js + Strapi + PostgreSQL)",
+  "engines": {
+    "node": ">=20.19.0 <=22.x.x"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d --wait",
+    "install:all": "npm install && npm --prefix apps/cms install && npm --prefix apps/web install",
+    "dev": "concurrently --kill-others -n cms,web -c magenta,cyan \"npm:dev:cms\" \"npm:dev:web\"",
+    "dev:cms": "npm --prefix apps/cms run develop",
+    "dev:web": "npm --prefix apps/web run dev",
+    "build": "npm run build:cms && npm run build:web",
+    "build:cms": "npm --prefix apps/cms run build",
+    "build:web": "npm --prefix apps/web run build",
+    "start:cms": "npm --prefix apps/cms run start",
+    "start:web": "npm --prefix apps/web run start",
+    "seed": "npm --prefix apps/cms run seed",
+    "lint": "npm --prefix apps/web run lint",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,scss,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,scss,md,yml}\"",
+    "check:visual": "npm --prefix apps/web run check:visual",
+    "check:interaction": "npm --prefix apps/web run check:interaction",
+    "og": "npm --prefix apps/web run og"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "playwright": "^1.63.0",
+    "prettier": "^3.4.2"
+  }
+}

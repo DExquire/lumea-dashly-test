@@ -1,0 +1,71 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(4);
+}
+
+.legend {
+  padding: 0;
+  font-size: fn.rem(14);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: fn.tracking(-2);
+  color: var(--color-text-muted);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: fn.rem(4);
+}
+
+.option {
+  cursor: pointer;
+}
+
+/* The input stays in the accessibility tree (keyboard + screen readers) while
+   the visible chip is styled; only the visual is a span. */
+.input {
+  @include mx.visually-hidden;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: fn.rem(40);
+  padding: fn.rem(8) fn.rem(12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-size: fn.rem(14);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: fn.tracking(-2);
+  text-align: center;
+  transition:
+    background-color t.$duration-fast t.$ease-out,
+    border-color t.$duration-fast t.$ease-out,
+    color t.$duration-fast t.$ease-out;
+
+  @include mx.hover {
+    border-color: var(--color-sage);
+    background-color: var(--color-green-50);
+  }
+}
+
+.input:checked + .chip {
+  background-color: var(--color-sage-tint);
+  border-color: var(--color-sage);
+  color: var(--color-green-900);
+}
+
+.input:focus-visible + .chip {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

@@ -1,0 +1,187 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  padding-top: mx.fluid(64, 160);
+  /* The design ends the page with this section — no trailing padding, so the
+     last card still fills the screen when the scroll runs out instead of
+     leaving an empty column behind the departed pile. */
+  padding-bottom: 0;
+  background-color: var(--color-surface);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: mx.fluid(40, 80);
+  width: 100%;
+  max-width: var(--container-outer);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.titleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(12);
+  width: 100%;
+  padding: fn.rem(16) fn.rem(24);
+  border-radius: var(--radius-md);
+  background-image: var(--gradient-title);
+  box-shadow: var(--shadow-float);
+  text-align: center;
+
+  @include bp.from("lg") {
+    width: auto;
+    padding: fn.rem(28) fn.rem(160);
+    border-radius: fn.rem(200);
+  }
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: fn.rem(6);
+  font-size: mx.fluid(28, 38);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.headingAccent {
+  color: var(--color-green);
+}
+
+.star {
+  flex: none;
+  width: mx.fluid(24, 32);
+  height: mx.fluid(24, 32);
+  color: var(--color-text);
+}
+
+.subheading {
+  max-width: fn.rem(240);
+  font-size: mx.fluid(16, 18);
+  font-weight: 700;
+  line-height: fn.line-height(21.6, 18);
+  color: var(--color-text-secondary);
+
+  @include bp.from("lg") {
+    max-width: none;
+  }
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(40);
+  width: 100%;
+
+  @include bp.from("lg") {
+    display: grid;
+    grid-template-columns: fn.rem(500) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(10);
+  /* No overflow on the stack or its ancestors — it would break `sticky`. */
+
+  /**
+   * A sticky element is clamped to the *content* box of its container, and each
+   * card rests one `--stack-peek` lower than the one before it. Without room
+   * below the last card the stack runs out of container before the lower cards
+   * reach their offsets — they freeze a few pixels apart and clip each other's
+   * titles. Padding would not help (it is outside the content box), so the
+   * reserve is a real box in the flow, sized to the travel of the whole stack.
+   */
+  &::after {
+    content: "";
+    /* At least the travel of the stack, and any extra height the taller
+       products column gives the row, so the pile stays assembled until the
+       section itself scrolls away instead of collapsing halfway through it. */
+    flex: 1 0 calc((var(--card-count, 1) - 1) * var(--stack-peek));
+  }
+
+  @include bp.from("lg") {
+    align-self: stretch;
+  }
+}
+
+/**
+ * The whole stacking effect: each card sticks a little lower than the previous
+ * one, so scrolling down piles them up and scrolling up unstacks them again,
+ * with no JS on the scroll thread and no layout shift.
+ */
+.stackItem {
+  z-index: calc(var(--card-index, 0) + 1);
+  display: flex;
+
+  /**
+   * Two margins, both about how the pile behaves rather than how it looks.
+   *
+   * A sticky card stops at the bottom of its container, and since every card
+   * rests 105px lower than the one before it, the lower ones would run out of
+   * container first and bunch up against each other on the way out. Giving each
+   * card the trailing room of the cards still below it makes all four reach that
+   * limit at the same moment, so the assembled pile leaves as one block instead
+   * of collapsing into itself. The negative top margin on the next card gives
+   * the same amount back, so the column's own length is unchanged.
+   *
+   * The second term is the height a card gives up as it tightens into the pile
+   * (see `--step-collapse` in StepCard): without it the flow would shift mid
+   * scroll, every card would reach its slot at once and the staircase would
+   * collapse into a single instant.
+   */
+  margin-top: calc(-1 * (var(--card-count, 1) - var(--card-index, 0)) * var(--stack-peek));
+  margin-bottom: calc(
+    (var(--card-count, 1) - 1 - var(--card-index, 0)) * var(--stack-peek) +
+      var(--stack-progress, 0) * #{fn.rem(72)}
+  );
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  position: sticky;
+  top: calc(var(--stack-top) + var(--card-index, 0) * var(--stack-peek));
+}
+
+.products {
+  display: flex;
+  flex-direction: column;
+  gap: fn.rem(12);
+  min-width: 0;
+
+  @include bp.from("lg") {
+    position: sticky;
+    top: var(--stack-top);
+  }
+}
+
+.productsLabel {
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(17.6, 16);
+  color: var(--color-ink);
+  transition: color t.$duration-base t.$ease-out;
+
+  @include bp.from("lg") {
+    text-align: center;
+  }
+}
+
+/* On mobile the products live in the overlay, opened from a step CTA. */
+@include bp.until("lg") {
+  .products {
+    display: none;
+  }
+}

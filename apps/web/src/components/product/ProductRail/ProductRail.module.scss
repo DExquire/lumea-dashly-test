@@ -1,0 +1,41 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+
+/**
+ * Products scroll inside this container only: the cards can never spill over
+ * the step cards or outside the section, and the rest of the page stays put.
+ */
+.track {
+  @include mx.horizontal-scroller(fn.rem(12));
+  @include mx.focus-ring(4px);
+
+  align-items: stretch;
+  padding-block: fn.rem(2);
+  /* Room for the cards' drop shadow, which would otherwise be clipped. */
+  padding-inline: fn.rem(2);
+  scroll-padding-inline: fn.rem(2);
+}
+
+.item {
+  display: flex;
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  min-height: fn.rem(220);
+  padding: fn.rem(32);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(21.6, 16);
+  text-align: center;
+
+  @include bp.from("lg") {
+    min-height: fn.rem(320);
+  }
+}

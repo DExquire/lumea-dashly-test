@@ -1,0 +1,28 @@
+/// Layout constants taken from the Figma frames.
+/// Colours, shadows and radii live as CSS custom properties in `globals.scss`;
+/// this file holds the values SCSS needs at build time for calculations.
+
+/// Content column: 1280px inside the 1440px desktop frame (80px gutters),
+/// 347px inside the 375px mobile frame (14px gutters).
+$container-max: 1280px;
+$gutter-mobile: 14px;
+$gutter-tablet: 32px;
+$gutter-desktop: 80px;
+
+/// Visible strip of a card that is already stacked, per Figma:
+/// mobile uses a -290px overlap on 420px-tall cards.
+$stack-peek-mobile: 130px;
+$stack-peek-desktop: 105px;
+/// Below this window height four stacked cards cannot fit, so they stay in flow.
+$stack-min-height: 880px;
+
+/// Where the first card of the stack comes to rest under the top of the viewport.
+$stack-top-mobile: 24px;
+$stack-top-desktop: 160px;
+
+/// Shared motion settings, so every interactive element animates alike.
+$duration-fast: 180ms;
+$duration-base: 280ms;
+$duration-slow: 520ms;
+$ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);

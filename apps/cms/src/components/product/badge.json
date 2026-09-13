@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_product_badges",
+  "info": {
+    "displayName": "Badge",
+    "icon": "price-tag",
+    "description": "Badge on a product card, e.g. Sale / New / Bestseller."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "maxLength": 30
+    },
+    "tone": {
+      "type": "enumeration",
+      "enum": ["neutral", "sale", "new", "bestseller"],
+      "default": "neutral",
+      "required": true,
+      "description": "Visual style of the badge."
+    }
+  }
+}

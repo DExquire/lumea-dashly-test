@@ -1,0 +1,60 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: fn.rem(8);
+  min-height: fn.rem(44);
+  padding: fn.rem(4) fn.rem(12) fn.rem(4) fn.rem(24);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface-muted);
+}
+
+.amounts {
+  display: flex;
+  flex-direction: column;
+}
+
+.original {
+  font-size: fn.rem(14);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.currentRow {
+  display: flex;
+  align-items: center;
+  gap: fn.rem(6);
+}
+
+.currentLabel {
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(17.6, 16);
+  color: var(--color-ink);
+}
+
+.current {
+  font-size: fn.rem(18);
+  font-weight: 700;
+  line-height: fn.line-height(21.6, 18);
+  color: var(--color-ink);
+}
+
+.discount {
+  flex: none;
+  padding: fn.rem(6) fn.rem(8);
+  border-radius: fn.rem(200);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(17.6, 16);
+}
+
+.srOnly {
+  @include mx.visually-hidden;
+}

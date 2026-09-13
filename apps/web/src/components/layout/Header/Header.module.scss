@@ -1,0 +1,169 @@
+@use "functions" as fn;
+@use "mixins" as mx;
+@use "breakpoints" as bp;
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: fn.rem(8);
+  width: 100%;
+  padding-top: fn.rem(26);
+
+  @include bp.from("lg") {
+    gap: fn.rem(12);
+    padding-top: fn.rem(44);
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: fn.rem(24);
+  width: 100%;
+  max-width: var(--container-outer);
+  min-height: fn.rem(50);
+  padding-inline: var(--gutter);
+
+  @include bp.from("lg") {
+    justify-content: space-between;
+    min-height: fn.rem(78);
+  }
+}
+
+/* The mobile frame has no logo — the icon row sits alone on the right. */
+.logo {
+  display: none;
+  font-family: var(--font-logo), system-ui, sans-serif;
+  font-size: fn.rem(40);
+  font-weight: 700;
+  line-height: fn.line-height(48.41, 40);
+  color: var(--color-text);
+  letter-spacing: 0;
+  transition: color t.$duration-fast t.$ease-out;
+
+  @include mx.focus-ring(4px);
+
+  @include mx.hover {
+    color: var(--color-cyan-deep);
+  }
+
+  @include bp.from("lg") {
+    display: block;
+  }
+}
+
+.nav {
+  display: none;
+
+  @include bp.from("lg") {
+    display: block;
+  }
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: fn.rem(40);
+}
+
+.navLink {
+  display: inline-block;
+  font-size: fn.rem(16);
+  font-weight: 700;
+  line-height: fn.line-height(17.6, 16);
+  color: var(--color-ink);
+  transition: color t.$duration-fast t.$ease-out;
+  border-radius: fn.rem(4);
+
+  @include mx.focus-ring(6px);
+
+  @include mx.hover {
+    color: var(--color-cyan-deep);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: fn.rem(4);
+
+  @include bp.from("lg") {
+    gap: fn.rem(8);
+  }
+}
+
+.iconButton {
+  @include mx.button-reset;
+  @include mx.focus-ring;
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: fn.rem(40);
+  height: fn.rem(40);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-ink);
+  transition:
+    color t.$duration-fast t.$ease-out,
+    background-color t.$duration-fast t.$ease-out,
+    transform t.$duration-fast t.$ease-out;
+
+  @include mx.hover {
+    color: var(--color-cyan-deep);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @include mx.reduced-motion {
+    transition-duration: 1ms;
+
+    @include mx.hover {
+      transform: none;
+    }
+  }
+}
+
+/* Burger: mobile only, and tinted like the Figma mobile header. */
+.menuButton {
+  background-color: var(--color-sage-tint);
+  width: fn.rem(44);
+  height: fn.rem(44);
+
+  @include bp.from("lg") {
+    display: none;
+  }
+}
+
+/* Search: desktop only, matching the Figma frames. */
+.searchButton {
+  display: none;
+
+  @include bp.from("lg") {
+    display: grid;
+  }
+}
+
+.cartCount {
+  position: absolute;
+  right: fn.rem(-2);
+  bottom: fn.rem(-2);
+  display: grid;
+  place-items: center;
+  min-width: fn.rem(20);
+  height: fn.rem(20);
+  padding-inline: fn.rem(5);
+  border-radius: fn.rem(20);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  font-size: fn.rem(11);
+  font-weight: 700;
+  line-height: 1;
+}
