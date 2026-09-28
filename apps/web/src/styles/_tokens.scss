@@ -12,7 +12,7 @@ $gutter-desktop: 80px;
 /// Visible strip of a card that is already stacked, per Figma:
 /// mobile uses a -290px overlap on 420px-tall cards.
 $stack-peek-mobile: 130px;
-$stack-peek-desktop: 105px;
+$stack-peek-desktop: 95px;
 /// Below this window height four stacked cards cannot fit, so they stay in flow.
 $stack-min-height: 880px;
 

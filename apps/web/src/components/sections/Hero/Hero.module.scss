@@ -28,16 +28,51 @@
 /**
  * The three blurred colour washes from the design, as gradients: they follow the
  * viewport instead of being a fixed-size image, and cost nothing to load.
+ *
+ * Position, reach and strength are not eyeballed: every background pixel of the
+ * design's hero that is not covered by an element (and is locally flat, so no
+ * edges or drop shadows get in) was sampled and these four gradients were fitted
+ * to it, base colour included — its corners are the flat 253,253,253 this sits
+ * on. The fit lands within ~1 level per channel across the whole field; the
+ * three gradients that preceded it were out by 3, and by 30 in the gap between
+ * the portrait and the essentials card, which read as white against the design's
+ * teal.
+ *
+ * They are layered as CSS paints them, first on top: a cool blue behind the
+ * header row, the teal pool low and centre-right, the blush at the right edge, a
+ * second, wider blue across the middle left, and a dusty rose under the teal
+ * that warms its lower half.
  */
 .glow {
   position: absolute;
   inset: 0;
   z-index: -1;
   background-image:
-    radial-gradient(38% 34% at 84% 26%, rgba(0, 195, 208, 0.35) 0%, rgba(0, 195, 208, 0) 100%),
-    radial-gradient(58% 48% at 74% 8%, rgba(255, 192, 192, 0.5) 0%, rgba(255, 192, 192, 0) 100%),
-    radial-gradient(72% 56% at 12% 4%, rgba(218, 232, 255, 0.45) 0%, rgba(218, 232, 255, 0) 100%),
-    linear-gradient(180deg, rgba(243, 245, 245, 0) 55%, rgba(214, 235, 236, 0.55) 100%);
+    radial-gradient(
+      42.6% 35.9% at 58.1% 23.3%,
+      rgba(232, 241, 253, 1) 0%,
+      rgba(232, 241, 253, 0) 100%
+    ),
+    radial-gradient(
+      24.8% 50.8% at 58.9% 77.2%,
+      rgba(126, 227, 233, 0.89) 0%,
+      rgba(126, 227, 233, 0) 100%
+    ),
+    radial-gradient(
+      18.6% 32.5% at 88.2% 42.6%,
+      rgba(255, 220, 218, 0.96) 0%,
+      rgba(255, 220, 218, 0) 100%
+    ),
+    radial-gradient(
+      40.7% 31.4% at 24.4% 53.5%,
+      rgba(209, 229, 253, 0.4) 0%,
+      rgba(209, 229, 253, 0) 100%
+    ),
+    radial-gradient(
+      32% 25.4% at 52.5% 86.8%,
+      rgba(206, 160, 161, 0.52) 0%,
+      rgba(206, 160, 161, 0) 100%
+    );
 }
 
 .inner {
@@ -66,7 +101,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: fn.rem(25);
+  /* 15, not 25. The mobile frame puts the subtitle's ink at 252 with the title's
+     ending at 240, and at 25 it landed at 262 — every line under it, and the
+     button with them, carried that 10px down the hero. The subtitle-to-kicker
+     step is 8 more than this one, which `.ctaGroup` adds as its own margin. */
+  gap: fn.rem(15);
   width: 100%;
   text-align: center;
 
@@ -79,6 +118,15 @@
 
 .title {
   max-width: fn.rem(340);
+  /**
+   * The mobile frame does not centre the first line of the heading: "Skincare
+   * made" runs 48..319, whose middle is 183.5 against the screen's 187.5, while
+   * "simple" underneath is centred at 187.5 exactly. That is Figma keeping the
+   * space at the wrap, which a browser drops — so the 4px comes back as a
+   * negative indent, which applies to the first line only. It is reset on the
+   * desktop breakpoint, where the heading is left-aligned.
+   */
+  text-indent: fn.rem(-8);
   font-size: mx.fluid(40, 125);
   font-weight: 700;
   line-height: fn.line-height(36, 40);
@@ -88,6 +136,7 @@
   @include bp.from("lg") {
     max-width: none;
     width: 100%;
+    text-indent: 0;
     padding-left: fn.rem(20);
     line-height: fn.line-height(100, 125);
     letter-spacing: fn.tracking(-2);
@@ -100,7 +149,16 @@
 
   @include bp.from("lg") {
     display: block;
-    padding-right: fn.rem(34);
+    /* Both nudges are measured off the design's export: the word sat 2px to the
+       right of it and 6px below. The line box of a 125px face is taller than the
+       text box Figma lays out, so the second line inherits that difference —
+       hence a negative margin rather than a change of line-height, which would
+       move the first line too. */
+    margin-top: fn.rem(-6);
+    /* Given straight back, so only the word moves: without it the shorter line
+       box would lift everything after the heading by the same 6px. */
+    margin-bottom: fn.rem(6);
+    padding-right: fn.rem(36);
     text-align: right;
   }
 }
@@ -125,10 +183,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: fn.rem(8);
+  /* 6: the design leaves 8 between the kicker's ink and the button's top edge,
+     and the kicker's line box already carries 2 of it. */
+  gap: fn.rem(6);
+  /* On top of `.copy`'s 15 — the design's step from the subtitle to "Not sure
+     what your skin needs?" is 23, wider than the one above it. */
+  margin-top: fn.rem(8);
 
   @include bp.from("lg") {
     align-items: flex-start;
+    /* The desktop frame keeps the original 8 here; only the mobile one is 6. */
+    gap: fn.rem(8);
     margin-top: fn.rem(112);
     margin-left: fn.rem(20);
   }
@@ -142,6 +207,9 @@
   letter-spacing: fn.tracking(-2);
 
   @include bp.from("lg") {
+    /* The design sets this line in from the button rather than flush with it:
+       measured on the export, it starts 48px past the button's left edge. */
+    margin-left: fn.rem(48);
     letter-spacing: 0;
   }
 }
@@ -166,11 +234,20 @@
 }
 
 .portraitImage,
-.detailImage,
-.essentialsImage {
+.detailImage {
   object-fit: cover;
 }
 
+/**
+ * The one photo above the essentials card. Taken from the Figma node itself
+ * (`Frame 245233196`), not measured off a flat export: the frame is 184x129 at
+ * x1127 y468 with a 20px radius, and the picture inside it is a 220.4x275.5
+ * rectangle offset (-18.2, -73.24) — a tall image cropped to its top band. Only
+ * 118px of the frame are visible in the export because the essentials card
+ * overlaps its last 11px, which is why a crop measured off the export came out
+ * both too short and framed too tight. `hero-detail.webp` is that exact window,
+ * composed from the original asset at 3x.
+ */
 .detail {
   position: absolute;
   top: fn.rem(290);
@@ -192,21 +269,16 @@
   gap: fn.rem(12);
   width: math.percentage(math.div(246, 1440));
   min-width: fn.rem(220);
-  padding: fn.rem(25) fn.rem(20) fn.rem(12);
+  /**
+   * `plashka products` in Figma: 246x201 at x1094 y586, radius 32, side padding
+   * 20 and 25 above the title. Its auto-layout declares 12 below the button, but
+   * the frame's height is fixed at 201 and its content column is only 159 tall,
+   * so the rendered gap under the button is 25 + 159 + x = 201 -> 17.
+   */
+  padding: fn.rem(25) fn.rem(20) fn.rem(17);
   border-radius: fn.rem(32);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-soft);
-}
-
-/* The bottle overlaps the top edge of the card, as in the design. */
-.essentialsMedia {
-  position: absolute;
-  z-index: -1;
-  top: fn.rem(-95);
-  left: 50%;
-  width: fn.rem(127);
-  height: fn.rem(155);
-  transform: translateX(-50%);
 }
 
 .essentialsTitle {
@@ -221,11 +293,32 @@
   font-weight: 500;
   line-height: fn.line-height(18.56, 16);
   color: var(--color-text);
+
+  @include bp.from("lg") {
+    /* Figma lays this text node out 57px tall for its three lines, 1.36 more
+       than 3 x 18.56. That 1.36 is what puts the card's button at y716 and makes
+       the card itself 201 tall, so it is reproduced as a floor rather than left
+       to accumulate as a rounding error. A longer message still grows past it. */
+    min-height: fn.rem(57);
+  }
 }
 
 .trust {
-  margin-top: fn.rem(35);
-  padding: fn.rem(20);
+  position: relative;
+  /* 49, not 35: the copy above it now ends 14px higher, and the design puts this
+     plate's top edge at 433.5 either way. */
+  margin-top: fn.rem(49);
+  /* The plate is not centred on the mobile frame: it runs 62.5..307.5, whose
+     middle is 185 against the screen's 187.5. Five pixels of margin on one side
+     move a centred box by half that. */
+  margin-right: fn.rem(5);
+  /**
+   * 16 and 14, not 20 all round. Measured on the mobile frame: the plate runs
+   * 433.5..483 and 62.5..307.5 — 245x49.5 around a label whose ink is 217 wide
+   * and whose line box is 17.6 tall. At 20 it came out 258.8x57.6, which put the
+   * label 4px low and the plate 7px too tall.
+   */
+  padding: fn.rem(16) fn.rem(14);
   border-radius: fn.rem(12);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-soft);
@@ -235,11 +328,61 @@
   color: var(--color-text-secondary);
   text-align: center;
 
+  /**
+   * The same open white frame the desktop draws around this plate (`Rectangle
+   * 10`), at the mobile frame's own offsets: its stroke sits 5.5 out on the
+   * left, 6 on the right, 13 above and 12.5 below.
+   */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: fn.rem(-13) fn.rem(-6) fn.rem(-12.5) fn.rem(-5.5);
+    border: 1px solid #ffffff;
+    border-radius: fn.rem(12);
+    pointer-events: none;
+  }
+
   @include bp.from("lg") {
     position: absolute;
     right: math.percentage(math.div(187, 1440));
     bottom: fn.rem(38);
     margin-top: 0;
+    margin-right: 0;
     width: math.percentage(math.div(331, 1440));
+
+    /**
+     * The label is not optically centred in the design and this reproduces that.
+     * Its Figma text node is 236.86 wide, left-aligned, and centred inside the
+     * plate's 291px content box, while the words themselves only fill 217 — so
+     * they sit about 8px left of the plate's centre. Centring the text instead
+     * puts every glyph 8px right of the design. 47.07 = 20 of plate padding plus
+     * the 27.07 that centres a 236.86 box in 291.
+     */
+    /* The desktop plate is 331x58 — 20 above and below, unlike the mobile
+       frame's 16. */
+    padding-block: fn.rem(20);
+    padding-inline: fn.rem(47.07);
+    text-align: left;
+
+    /**
+     * `Rectangle 10` in Figma: the open frame drawn around this plate. It is a
+     * 356.5x76 rectangle at x911.06 y830.59 with no fill, a 1px solid white
+     * stroke drawn inside, and a 12px radius — the same radius as the plate. The
+     * plate itself is 331x58 at x922.36 y840.36, which puts the frame 11.3px
+     * out on the left, 14.19 on the right, 9.77 above and 8.23 below.
+     *
+     * There is no gradient or mask on it: the frame looks like it fades out to
+     * the right only because the hero's wash turns white underneath it, so a
+     * white stroke stops showing. Faking that with a mask made it disappear a
+     * little too early and read as a deliberate effect.
+     */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: fn.rem(-9.77) fn.rem(-14.19) fn.rem(-8.23) fn.rem(-11.3);
+      border: 1px solid #ffffff;
+      border-radius: fn.rem(12);
+      pointer-events: none;
+    }
   }
 }

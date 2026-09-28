@@ -6,41 +6,124 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(20);
+  /* 24 between the heading block and the copy (`Title + Descr`), and no bottom
+     padding: on the mobile frame the photograph's lower edge is the card's own
+     (its `card inner` reserves 100 below the CTA and the 110-tall picture sits
+     over it, flush with the bottom). */
+  gap: fn.rem(24);
   width: 100%;
   height: 100%;
-  padding: fn.rem(20) fn.rem(14);
-  border-radius: var(--radius-2xl);
+  /* Every card on the mobile frame is 420 tall, whatever its copy — the
+     photograph is placed against the card's own box, not the end of the text. */
+  min-height: fn.rem(420);
+  padding: fn.rem(20) fn.rem(14) 0;
+  /* 20 on the mobile frame and 32 on the desktop one, both off the `Step Card`
+     node itself. */
+  border-radius: fn.rem(20);
   background-color: var(--color-surface-muted);
+  isolation: isolate;
+  position: relative;
   /**
-   * The hairline is an inset ring, not a `border`: the design draws its 1px
-   * stroke inside the card without moving the content, while a real border
-   * would push everything down by a pixel — exactly enough to clip a covered
-   * card's tagline out of the 105px peek. The stacked shadow sits above the
-   * card, where the next one overlaps it.
+   * The mobile card carries an upward shadow layer the desktop one does not —
+   * see `--shadow-step-card-mobile`. It is what darkens the top edge of every
+   * card in the pile; the stroke below is far too pale to do it.
    */
-  box-shadow:
-    inset 0 0 0 1px var(--color-hairline),
-    var(--shadow-stacked);
+  box-shadow: var(--shadow-step-card-mobile);
+
+  /**
+   * The card's 1px stroke, as a masked gradient in the border's own 1px of
+   * padding — the only way to give a border a gradient and keep the radius.
+   *
+   * The node has it as a vertical gradient from #f3f5f5 to #f5fcfd, which
+   * against the card's own #f3f5f5 fill is all but invisible. An earlier pass
+   * read the design's edge off the export, took the shadow for the stroke, and
+   * put a sage #bcd6ce ring here that the design has nothing of.
+   */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      to bottom,
+      var(--card-ring-from) 0%,
+      var(--card-ring-to) 100%
+    );
+    /* Longhands, not the `mask` shorthand: the shorthand resets the composite
+       mode, and with `-webkit-mask` written after it the ring filled the whole
+       card instead of just its 1px padding. */
+    -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    -webkit-mask-clip: content-box, border-box;
+    -webkit-mask-composite: xor;
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-clip: content-box, border-box;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
   transition: box-shadow t.$duration-base t.$ease-out;
 
   /**
-   * In the design a card is roomy on its own (40px padding) and compact once
-   * the pile has formed (15px top and bottom, 20px at the sides), which is what
+   * In the design a card is roomy on its own (40px padding) and compact once it
+   * has joined the pile (15px top and bottom, 20px at the sides), which is what
    * lets a 105px peek show a covered card's number, title and tagline in full.
-   * `--stack-progress` is how far the stack has collapsed, so the card tightens
-   * with the pile instead of snapping between two states.
+   * The spacing between its own blocks is 10px in both states, so the only thing
+   * that changes is the padding — and the card is therefore exactly 50px
+   * shorter once it has settled.
+   *
+   * `--step-collapse` is 0 or 1, set on the list item the moment that card
+   * reaches its slot: the card settles once, over this transition, instead of
+   * being resized continuously as the page scrolls.
+   *
+   * `margin-bottom` hands those 50px straight back, so the card's *outer* height
+   * never changes and nothing below it in the flow moves while it tightens.
+   * `--step-settle` switches that off for the last card, which has nothing below
+   * it to protect and needs to sit flush with the bottom of the column.
    */
   @include bp.from("lg") {
-    --step-collapse: var(--stack-progress, 0);
+    min-height: var(--card-min-height, 0);
+    border-radius: var(--radius-2xl);
+    /**
+     * No shared `gap` between the three blocks: measured against the design's
+     * export, the space above the body and the space above the photo are not
+     * the same number (31 and 10 on step 01), so each block carries its own
+     * `margin-top` instead. One `gap` can only ever match one of them.
+     */
+    gap: 0;
+    /**
+     * Cards are as tall as their own content and are allowed to differ — the
+     * design's four are 552, 499, 495 and 533 — because `useStackingCards`
+     * measures each one and hands the difference to the stack as `--card-slack`,
+     * so they still leave the pile together. `--card-min-height` is only for
+     * deliberately giving one step more room than its content asks for.
+     */
+    min-height: var(--card-min-height, 0);
+    /**
+     * 32 above and 39 below, not 40 both ways. The design's numeral ink starts
+     * exactly at the card's padding edge while ours sits 8px inside its own box,
+     * so a 40 top padding pushed the whole heading 8px down the card.
+     */
+    /* The 25 a card gives up on settling, plus whatever of its top padding was
+       only there to place the expanded text — see `paddingTopExpandedOnly`. */
+    padding-top: calc(
+      var(--card-pad-top, #{fn.rem(32)}) -
+        var(--step-collapse, 0) * (#{fn.rem(25)} + var(--card-pad-top-expanded-only, 0px))
+    );
+    padding-bottom: calc(var(--card-pad-bottom, #{fn.rem(39)}) - var(--step-collapse, 0) * #{fn.rem(25)});
+    padding-inline: calc(#{fn.rem(40)} - var(--step-collapse, 0) * #{fn.rem(20)});
+    margin-bottom: calc(
+      var(--step-collapse, 0) * var(--step-settle, 1) * (#{fn.rem(50)} + var(--cta-drop, 0px))
+    );
+    box-shadow: var(--shadow-card);
+    transition:
+      padding t.$duration-base t.$ease-out,
+      margin-bottom t.$duration-base t.$ease-out,
+      box-shadow t.$duration-base t.$ease-out;
 
-    gap: calc(#{fn.rem(32)} - var(--step-collapse) * #{fn.rem(22)});
-    padding: calc(#{fn.rem(40)} - var(--step-collapse) * #{fn.rem(25)})
-      calc(#{fn.rem(40)} - var(--step-collapse) * #{fn.rem(20)});
-    box-shadow:
-      inset 0 0 0 1px var(--color-hairline),
-      var(--shadow-card),
-      var(--shadow-stacked);
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 
   /* Mint (02) and blush (04) cards from the design. */
@@ -54,10 +137,35 @@
   }
 }
 
+/**
+ * The card's text is a layer above its photograph.
+ *
+ * Step 03's photo reaches up beside the CTA, and whichever of the two is
+ * painted last wins the overlap — in source order that was the photo, so it cut
+ * the right-hand end off the link's rule. Stacking the text over it puts the
+ * rule back on top, whatever the photo's position. `isolation` on the card
+ * keeps both indexes inside it, clear of the pile's own z-order.
+ */
+.head,
+.body {
+  position: relative;
+  z-index: 1;
+}
+
+.media {
+  position: relative;
+  z-index: 0;
+}
+
 .head {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(8);
+  /* 16 on the mobile frame (`Frame 245233073`), 8 on the desktop one. */
+  gap: fn.rem(16);
+
+  @include bp.from("lg") {
+    gap: fn.rem(8);
+  }
 }
 
 .heading {
@@ -73,27 +181,69 @@
   align-items: flex-end;
   gap: fn.rem(10);
   width: 100%;
+  /* Step 01's row is a fixed 58 in the frame — 10px of air above a 48px numeral
+     and a 32px line, both on its bottom edge. The other three are as tall as
+     their own content. */
+  min-height: var(--m-title-row-min, 0);
   border-radius: fn.rem(8);
-}
-
-.numeral {
-  flex: none;
-  width: fn.rem(64);
-  height: fn.rem(32);
-  color: var(--color-border);
 
   @include bp.from("lg") {
-    width: fn.rem(85);
-    height: fn.rem(42);
+    min-height: 0;
+  }
+}
+
+/**
+ * The frame the numeral is cropped by: 100x48 on mobile, 85x42 on the desktop
+ * one — and 88 wide there on steps 03 and 04, whose second digit is wider.
+ *
+ * `StepNumber` draws one outline per frame rather than one drawing scaled into
+ * both, so each box is 1:1 with its own artwork and neither squeezes it. At a
+ * flat 85 the last two desktop numerals were scaled to 85/88 of their size, and
+ * the mobile ones, sharing the desktop drawing, were blown up by 100/85.
+ */
+.numeral {
+  flex: none;
+  color: var(--color-border);
+
+  &[data-variant="mobile"] {
+    width: fn.rem(100);
+    height: fn.rem(48);
+
+    @include bp.from("lg") {
+      display: none;
+    }
+  }
+
+  &[data-variant="desktop"] {
+    display: none;
+
+    @include bp.from("lg") {
+      display: block;
+      width: fn.rem(85);
+      height: fn.rem(42);
+
+      &[data-w="88"] {
+        width: fn.rem(88);
+      }
+    }
   }
 }
 
 .title {
-  font-size: mx.fluid(36, 50);
-  font-weight: 700;
-  line-height: 1;
+  /* Per step on the mobile frame: 40/32 on 01, 36/29 on 02 and 03, 50/50 on 04,
+     and Manrope 400 on all but 04. See `mobile` in `routine-steps`. */
+  font-size: var(--m-title-size, #{fn.rem(40)});
+  font-weight: var(--m-title-weight, 400);
+  line-height: var(--m-title-lh, 0.8);
   color: var(--color-green);
   transition: color t.$duration-fast t.$ease-out;
+
+  @include bp.from("lg") {
+    /* The desktop frame is one size for all four: Manrope 700 at 50/50. */
+    font-size: fn.rem(50);
+    font-weight: 700;
+    line-height: 1;
+  }
 
   .headingButton:hover & {
     color: var(--color-green-900);
@@ -102,81 +252,223 @@
 
 .tagline {
   font-family: var(--font-script), cursive;
-  font-size: mx.fluid(26, 32);
-  font-weight: 700;
-  line-height: 1;
+  /* 32 on every frame except step 03's mobile card, which is 26 — but its line
+     box stays 32 there, so the heading block is the same height either way. */
+  font-size: var(--m-tagline-size, #{fn.rem(32)});
+  /* 700 on step 01's mobile card and 400 on the other three: the four text
+     nodes are `w700, w400, w400, w400` on the 375 frame. On desktop all four
+     are 700. */
+  font-weight: var(--m-tagline-weight, 700);
+  line-height: fn.rem(32);
   color: var(--color-sage);
+
+  /* The per-step size is the mobile frame's; the desktop one is 32 throughout. */
+  @include bp.from("lg") {
+    font-size: fn.rem(32);
+    font-weight: 700;
+  }
 }
 
 /* Collapsed cards show only the head strip; the body fades out with the stack. */
 .body {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(20);
+  /* 32 on step 01 and 44 on the other three, whose copy block carries 12 of its
+     own padding under the text (`Title + Descr`). */
+  gap: var(--m-cta-gap, #{fn.rem(32)});
 
   @include bp.from("lg") {
-    gap: fn.rem(32);
+    /* 31 below the heading block and 30 between the copy and the CTA, both read
+       off the design: its description starts 119px below the numeral's ink and
+       its CTA 218px, on every step. */
+    margin-top: fn.rem(31);
+    gap: fn.rem(30);
   }
 }
 
 .description {
-  max-width: fn.rem(320);
-  font-size: mx.fluid(16, 18);
-  font-weight: 700;
-  line-height: fn.line-height(23.4, 18);
+  max-width: var(--m-description-width, #{fn.rem(320)});
+
+  @include bp.from("lg") {
+    /* 360 is the widest copy box in the design (steps 02 and 04 run to 359 and
+       354). A step whose Figma text node is narrower overrides it through
+       `--description-width` — step 01 is 320 there, which is what makes it break
+       after "SPF and" instead of pulling "daily" up onto the first line. */
+    max-width: var(--description-width, #{fn.rem(360)});
+  }
+
+  /**
+   * Manrope 700 18/23.4 on three of the four mobile cards — and 400 16/17.6 on
+   * step 02.
+   *
+   * Its copy is the longest of the four and the card is the same 420 tall as
+   * the others with its photo pinned at 310, so the design sets that one
+   * paragraph a size down and lighter to keep it to three lines: the text node
+   * is `f16/17.6 w400` against `f18/23.4 w700` on 01, 03 and 04. At 18/700 the
+   * same words take four lines and push the link 40px below where the frame
+   * draws it, which is the whole of the mismatch that was left on this card.
+   */
+  font-size: var(--m-description-size, #{fn.rem(18)});
+  font-weight: var(--m-description-weight, 700);
+  line-height: var(--m-description-lh, #{fn.line-height(23.4, 18)});
   color: var(--color-text-muted);
+
+  @include bp.from("lg") {
+    /* The desktop frame is 18/23.4 700 on all four. */
+    font-size: fn.rem(18);
+    font-weight: 700;
+    line-height: fn.line-height(23.4, 18);
+  }
 }
 
 .cta {
   @include mx.button-reset;
   @include mx.focus-ring(6px);
 
+  /**
+   * The link sits 1px lower than it lays out, and its rule 1px lower again.
+   *
+   * On the design's export step 01's label starts at y1562 and its rule is at
+   * 1587; ours had them at 1561 and 1585 — the label 1 high, the rule 2, which
+   * is also 1px too little air between the two. The extra padding is taken
+   * straight back as a negative margin and the nudge is `position`, not
+   * `margin`, so neither of them lengthens the card: the photo underneath, and
+   * the pile of cards below it, stay exactly where they were. Moving the label
+   * with a margin is what pulls the photo down with it.
+   */
+  position: relative;
+
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
+  /* Step 01's CTA sits on its card's 14px inner padding; the other three sit on
+     an 8px one, 6 further out than their own copy. */
+  margin-left: var(--m-cta-inset, 0);
   gap: fn.rem(8);
-  padding-bottom: fn.rem(4);
-  border-bottom: 1px solid var(--color-ink);
+  padding-bottom: 0;
+
+  /**
+   * The rule under the link is drawn by `::after`, not by `border-bottom`.
+   *
+   * A border is part of the box, so moving it meant changing `padding-bottom`
+   * and cancelling that out with a negative margin — two numbers that have to
+   * stay in step, and get either of them wrong and the card grows and the whole
+   * pile shifts. Positioned, the rule is outside the flow: `--cta-rule-lift` is
+   * the only thing that moves it, and nothing else on the card notices.
+   *
+   * 1px: the design leaves 2 between the descenders of "Shop treatments" and
+   * its rule (2163 and 2165 on its export), and at 0 we left 3.
+   */
+  --cta-rule-lift: 1px;
+
+  /* The rule and the 3px nudge belong to the desktop frame; the mobile one sets
+     this link as plain Manrope 400 with no underline at all. */
+  @include bp.from("lg") {
+    margin-left: 0;
+    top: fn.rem(3);
+    padding-bottom: fn.rem(5);
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(#{fn.rem(-1)} + var(--cta-rule-lift));
+      height: 1px;
+      background-color: currentColor;
+      pointer-events: none;
+    }
+  }
   color: var(--color-ink);
   font-size: mx.fluid(18, 24);
-  font-weight: 700;
-  line-height: 1;
+  /* Manrope 400 at 18/23.4 on the mobile frame, 700 on the desktop one. */
+  font-weight: 400;
+  line-height: fn.line-height(23.4, 18);
+
+  @include bp.from("lg") {
+    font-weight: 700;
+    line-height: 1;
+  }
   transition:
     color t.$duration-fast t.$ease-out,
-    border-color t.$duration-fast t.$ease-out,
     gap t.$duration-fast t.$ease-out;
 
+  /* The rule is `currentColor`, so it follows the label on hover on its own. */
   @include mx.hover {
     gap: fn.rem(14);
     color: var(--color-green-900);
-    border-color: var(--color-green-900);
   }
 }
 
 .ctaIcon {
   flex: none;
-  width: fn.rem(22);
-  height: fn.rem(22);
-}
-
-.media {
-  position: relative;
-  width: 100%;
-  max-width: fn.rem(320);
-  aspect-ratio: 2.7;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  background-color: var(--color-surface-muted);
+  /* 20 on the mobile frame, 22 on the desktop one. */
+  width: fn.rem(20);
+  height: fn.rem(20);
 
   @include bp.from("lg") {
-    max-width: fn.rem(400);
+    width: fn.rem(22);
+    height: fn.rem(22);
+  }
+}
+
+/**
+ * On the mobile frame the photograph is placed against the card, not after the
+ * copy: each of the four has its own size, corner and corner-offset (300x110 at
+ * 47,310 on 01 and 02, a 105x157 portrait at 218,245 on 03, a 186x92 strip at
+ * 8,310 on 04), and the cards are all 420 tall regardless of how long the copy
+ * runs. Absolute is the only honest way to say that; on the desktop frame the
+ * photo goes back into the flow below the CTA.
+ */
+.media {
+  position: absolute;
+  left: var(--m-image-x, #{fn.rem(47)});
+  top: var(--m-image-y, #{fn.rem(310)});
+  width: var(--m-image-width, #{fn.rem(300)});
+  height: var(--m-image-height, #{fn.rem(110)});
+  overflow: hidden;
+  border-radius: var(--m-image-radius, #{fn.rem(13.33)});
+  background-color: var(--color-surface-muted);
+
+  /**
+   * Every step's photo has its own size in the design — 320x213, 388x160,
+   * 300x156, 391x194 — so both numbers come from the step's data rather than
+   * from one shared maximum here. Capping all four at 400 made step 01's photo
+   * 400x266 against the design's 320x213 and the card 582 tall against 523.
+   */
+  @include bp.from("lg") {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-xl);
+    max-width: var(--image-width, #{fn.rem(400)});
     aspect-ratio: var(--image-ratio, 1.6);
+    /**
+     * How far the photo sits below the CTA is the one gap the design does not
+     * keep constant: 10 on step 01, 32 on 02, 21 on 04, and on 03 the photo
+     * rides up beside the CTA instead of below it. Hence `mediaGap` per step.
+     */
+    margin-top: var(--media-gap, #{fn.rem(10)});
   }
 
+  /**
+   * Two of the four steps hang their photo on the right instead of the left.
+   * It stops at the padding box like everything else: the card behind is only
+   * covered as far as the card in front is wide, so anything reaching past that
+   * edge shows up as a stray strip of photograph beside the pile.
+   */
   &[data-align="end"] {
     @include bp.from("lg") {
       margin-inline-start: auto;
-      margin-inline-end: fn.rem(-28);
+      /* `--media-offset-x` pushes the photo past the card's side padding without
+         letting it leave the card: step 03's sits 22px further right than the
+         padding box in the design. */
+      /* The nudge is cancelled once the card tightens into the pile: its side
+         padding drops from 40 to 20 there, so the same 22px would push the photo
+         2px past the card's own edge and show as a strip beside the stack. */
+      margin-inline-end: calc(-1 * var(--media-offset-x, 0px) * (1 - var(--step-collapse, 0)));
     }
   }
 }

@@ -17,6 +17,16 @@
   --color-sage-tint: #bcc9c5;
   --color-border: #bfbfbf;
   --color-hairline: #f0f5f6;
+  /* The darker hairline the mobile frame draws around its step chips. */
+  --color-hairline-strong: #d9e1e2;
+  /**
+   * The step card's 1px stroke, read off the Figma node rather than the export:
+   * a vertical gradient from #f3f5f5 to #f5fcfd — all but invisible against the
+   * card's own #f3f5f5 fill. What draws the card's edge is the shadow, not the
+   * stroke, which is why measuring the export gave a stroke four times too dark.
+   */
+  --card-ring-from: #f3f5f5;
+  --card-ring-to: #f5fcfd;
   --color-surface: #ffffff;
   --color-surface-muted: #f3f5f5;
   --color-surface-hero: #fdfdfd;
@@ -27,6 +37,9 @@
   --color-green-100: #d1f0e0;
   --color-green-300: #92dbb6;
   --color-green-900: #32664b;
+  /* Nearly black with a green cast — the label colour of the step chips in the
+     mobile products panel. */
+  --color-green-950: #1b3829;
   --color-cyan: #00c0e8;
   --color-cyan-deep: #00c3d0;
   --color-teal: #00c8b3;
@@ -49,14 +62,35 @@
     12px 20px 16px rgba(156, 182, 186, 0.09), 8px 26px 14px rgba(156, 182, 186, 0.09),
     -20px 40px 30px rgba(156, 182, 186, 0.06);
 
+  /**
+   * The step cards on the mobile frame carry one layer the desktop ones do not:
+   * an upward `0 -12 12` at 20%. It is what darkens the top edge of every card
+   * in the pile — measured off the export that band reads 215, which a stroke
+   * of 244 cannot produce.
+   */
+  --shadow-step-card-mobile:
+    1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),
+    12px 20px 16px rgba(156, 182, 186, 0.09), 8px 26px 14px rgba(156, 182, 186, 0.09),
+    -20px 40px 30px rgba(156, 182, 186, 0.06), 0 -12px 12px rgba(154, 173, 167, 0.2);
+
+  /**
+   * The category pill in the mobile products panel. Not `--shadow-soft`: the
+   * frame gives this one its own six layers, in a green-grey rather than the
+   * blue-grey used everywhere else, throwing much further down-left — and an
+   * upward `0 -20 20` at 12% that puts a visible band of 226..240 across the
+   * full width of the panel above the pill, which is the one part of it that
+   * cannot be missed.
+   */
+  --shadow-filter-mobile:
+    -7px 8px 24px rgba(94, 123, 113, 0.1), -28px 33px 43px rgba(94, 123, 113, 0.09),
+    -62px 74px 58px rgba(94, 123, 113, 0.05), -110px 131px 69px rgba(94, 123, 113, 0.01),
+    0 -20px 20px rgba(94, 123, 113, 0.12);
+
   /* Floating elements that also lift upwards (favourite button, section title) */
   --shadow-float:
     1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),
     12px 20px 16px rgba(156, 182, 186, 0.09), 8px 26px 14px rgba(156, 182, 186, 0.09),
     -20px 40px 30px rgba(156, 182, 186, 0.06), -12px -40px 30px rgba(156, 182, 186, 0.1);
-
-  /* Stacked cards need a shadow above them, where the next card overlaps */
-  --shadow-stacked: 0 -12px 12px rgba(154, 173, 167, 0.2);
 
   /* Radii */
   --radius-xs: #{fn.rem(8)};
@@ -70,8 +104,16 @@
   /* Gradients */
   --gradient-hairline: linear-gradient(180deg, #f3f5f5 0%, #f5fcfd 100%);
   --gradient-title: linear-gradient(180deg, #f3f5f5 0%, #f5fcfd 100%);
-  --gradient-step-treat: linear-gradient(150deg, rgba(229, 247, 237, 0.9) 0%, rgba(146, 219, 182, 0.9) 100%);
-  --gradient-step-protect: radial-gradient(120% 120% at 82% 18%, rgba(217, 122, 129, 0.45) 13%, rgba(254, 203, 228, 0.55) 60%);
+  /* Both step-card washes are sampled off the design's export. The mint card
+     runs light at the top left to a deeper green at the bottom right; the blush
+     card is all but flat — the strong corner glow it used to have is not in the
+     design at all.
+     The mint values come from a plane fitted to every flat background pixel of
+     the design's card 02: its corners run 222,240,227 at the top left to
+     152,213,188 at the bottom right, a spread the previous 90%-opaque version
+     flattened to almost nothing. */
+  --gradient-step-treat: linear-gradient(141deg, #e6f7ee 0%, #93ddb7 100%);
+  --gradient-step-protect: linear-gradient(90deg, #ffe6f1 0%, #ffe6f5 100%);
 
   /* Layout — `--container-max` is the *content* width (1280px at 1440px),
      so containers add the gutters on top of it. */

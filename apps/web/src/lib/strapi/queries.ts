@@ -22,14 +22,55 @@ const PRODUCT_POPULATE = {
 } as const;
 
 /**
+ * Node reports a failed connection as a `TypeError: fetch failed` wrapping an
+ * `AggregateError` (one entry per resolved address), so the thing worth knowing
+ * — "nothing is listening" — is two levels down. Dig it out for the log line.
+ */
+function describeFailure(error: unknown): string {
+  const seen = new Set<unknown>();
+
+  const walk = (value: unknown): string | null => {
+    if (!value || typeof value !== 'object' || seen.has(value)) {
+      return null;
+    }
+
+    seen.add(value);
+
+    const candidate = value as { code?: string; cause?: unknown; errors?: unknown[] };
+
+    if (typeof candidate.code === 'string') {
+      return candidate.code;
+    }
+
+    for (const nested of [candidate.cause, ...(candidate.errors ?? [])]) {
+      const found = walk(nested);
+
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  };
+
+  return walk(error) ?? (error instanceof Error ? error.message : String(error));
+}
+
+/**
  * Content failures must not take the whole page down: the CMS may be asleep on
  * free-tier hosting, and the task explicitly asks for a graceful empty state.
+ *
+ * One line per collection, not the raw error: a CMS that is simply not running
+ * fails every request of every retry, and dumping each one buries whatever else
+ * the dev server has to say under a screen of identical stack frames.
  */
 async function withFallback<T>(label: string, load: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await load();
   } catch (error) {
-    console.error(`[strapi] failed to load ${label}:`, error);
+    console.warn(
+      `[strapi] ${label} unavailable (${describeFailure(error)}) — rendering without them`,
+    );
 
     return fallback;
   }

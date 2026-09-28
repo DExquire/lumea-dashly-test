@@ -67,11 +67,13 @@ function mapVariationGroups(
   groups: StrapiVariationGroupComponent[] | null | undefined,
 ): VariationGroup[] {
   return (groups ?? []).flatMap((group) => {
-    const name = trimmed(group.name);
+    // The colon after a group label is drawn by the stylesheet, so an editor who
+    // types "Size:" gets one colon rather than two.
+    const name = trimmed(group.name)?.replace(/:$/, '').trimEnd() ?? null;
     const options = (group.values ?? []).flatMap((value) => {
       const label = trimmed(value.label);
 
-      return label ? [{ id: String(value.id), label }] : [];
+      return label ? [{ id: String(value.id), label, discount: trimmed(value.discountLabel) }] : [];
     });
 
     // A group without a name or without options would render as an empty row.

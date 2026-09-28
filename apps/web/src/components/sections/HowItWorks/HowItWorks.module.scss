@@ -4,11 +4,17 @@
 @use "tokens" as t;
 
 .root {
-  padding-top: mx.fluid(64, 160);
-  /* The design ends the page with this section — no trailing padding, so the
-     last card still fills the screen when the scroll runs out instead of
-     leaving an empty column behind the departed pile. */
-  padding-bottom: 0;
+  /**
+   * 138 at 375, not 64. The mobile frame runs the hero out at 807 and starts the
+   * heading's ink at 946 — a 139px band of plain white, which is most of what
+   * made the whole lower half of the mobile page sit 57px above the design.
+   */
+  padding-top: mx.fluid(138, 160);
+  /* Both columns of this section end exactly at its content box: the pile of
+     cards comes to rest there and the taller products column is pushed up to
+     it. Without a trailing band the page would therefore end flush against the
+     product cards, with the last row of buttons cut by the window edge. */
+  padding-bottom: mx.fluid(32, 53);
   background-color: var(--color-surface);
 }
 
@@ -23,22 +29,37 @@
   padding-inline: var(--gutter);
 }
 
+/**
+ * The plate behind the section title is desktop-only.
+ *
+ * The mobile frame sets this heading as plain text on the page: every pixel
+ * around it, from the hero's edge down to the first step card, is a flat 255 —
+ * no fill, no shadow, no padding. Giving it the desktop pill on mobile drew a
+ * tinted rounded box across the full width of the screen that the design has
+ * nothing of, and its 16px of padding pushed the subheading down with it.
+ */
 .titleWrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: fn.rem(12);
+  /* 15 on mobile: the design leaves 20 between the heading's ink and the
+     subheading's, and the subheading's line box carries 5 of it. */
+  gap: fn.rem(15);
   width: 100%;
-  padding: fn.rem(16) fn.rem(24);
-  border-radius: var(--radius-md);
-  background-image: var(--gradient-title);
-  box-shadow: var(--shadow-float);
   text-align: center;
 
   @include bp.from("lg") {
     width: auto;
+    gap: fn.rem(12);
     padding: fn.rem(28) fn.rem(160);
     border-radius: fn.rem(200);
+    background-image: var(--gradient-title);
+    /* `--shadow-card`, not `--shadow-float`: the design draws nothing above this
+       pill — the 28px above its top edge are the flat page white, 253 to 255 —
+       while the float variant adds a -12px -40px 30px layer that greyed the whole
+       band over it. Below and to the side the two are identical, and those sides
+       already matched the design. */
+    box-shadow: var(--shadow-card);
   }
 }
 
@@ -46,7 +67,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: fn.rem(6);
+  /* 8 on each side of the star, not 6. In the design "How it" ends at 698 and
+     the star starts at 709, and the star ends at 736 with "works" starting at
+     746 — 11 and 10 once the glyphs' own side bearings (3 and 2) are taken off,
+     so 8 both times. At 6 the whole line came out 4px narrow and, being centred,
+     pushed "How it" right and "works" left by 2 each. */
+  gap: fn.rem(8);
   font-size: mx.fluid(28, 38);
   font-weight: 700;
   line-height: 1;
@@ -59,20 +85,34 @@
 
 .star {
   flex: none;
-  width: mx.fluid(24, 32);
-  height: mx.fluid(24, 32);
+  /* 28, not 32: the design's outline measures 28x27 of ink between "How it" and
+     "works", and this icon fills its box edge to edge. It is 28 on the mobile
+     frame too — its glyph groups there run "it" 150..166 and the star 176..202 —
+     so this is a constant, not a fluid value. At 24 the star was 3px short and
+     the whole centred line came out 5px narrow. */
+  width: fn.rem(28);
+  height: fn.rem(28);
   color: var(--color-text);
 }
 
 .subheading {
-  max-width: fn.rem(240);
-  font-size: mx.fluid(16, 18);
+  /* 200, not 240: the design breaks this line after "to" — "4 simple steps to"
+     is 140 wide and "healthier-looking skin" 180 — and at 240 the first line
+     took "healthier-" with it, 209 wide, leaving "looking skin" alone. */
+  max-width: fn.rem(200);
+  /* 18 on both frames, tracked in by 2% on mobile and set 23 apart there: the
+     design's two lines measure 141 and 181, and an untracked 16px face gave 129
+     and 168. */
+  font-size: fn.rem(18);
+  line-height: fn.line-height(23, 18);
+  letter-spacing: fn.tracking(-2);
   font-weight: 700;
-  line-height: fn.line-height(21.6, 18);
   color: var(--color-text-secondary);
 
   @include bp.from("lg") {
     max-width: none;
+    line-height: fn.line-height(21.6, 18);
+    letter-spacing: normal;
   }
 }
 
@@ -92,8 +132,32 @@
 .stack {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(10);
+  /* 26 between cards, measured on the design's export: its card 01 ends at
+     y1848 and card 02 begins at 1874, and the same 26 separates 02 from 03.
+     At 10 the whole column ran short by 16px per card and every card below the
+     first sat that much higher than the design. */
+  gap: fn.rem(26);
   /* No overflow on the stack or its ancestors — it would break `sticky`. */
+
+  /**
+   * The travel of the whole pile: every card's peek added up.
+   *
+   * `HowItWorks` writes it as a sum, because each step may carry its own peek
+   * (`peek` in `routine-steps`) and CSS cannot add up a row of siblings. The
+   * fallback is the old arithmetic, so the stack still behaves if the sum is
+   * ever missing.
+   */
+  --stack-peek-total: var(
+    --stack-peek-total-sm,
+    calc((var(--card-count, 1) - 1) * var(--stack-peek))
+  );
+
+  @include bp.from("lg") {
+    --stack-peek-total: var(
+      --stack-peek-total-lg,
+      calc((var(--card-count, 1) - 1) * var(--stack-peek))
+    );
+  }
 
   /**
    * A sticky element is clamped to the *content* box of its container, and each
@@ -108,7 +172,7 @@
     /* At least the travel of the stack, and any extra height the taller
        products column gives the row, so the pile stays assembled until the
        section itself scrolls away instead of collapsing halfway through it. */
-    flex: 1 0 calc((var(--card-count, 1) - 1) * var(--stack-peek));
+    flex: 1 0 var(--stack-peek-total);
   }
 
   @include bp.from("lg") {
@@ -126,6 +190,68 @@
   display: flex;
 
   /**
+   * `data-stacked` is written by `useStackingCards` the moment a card reaches
+   * its slot, and the card reads it as `--step-collapse` to tighten into the
+   * pile. Every card but the last also gives the 50px it loses back as a bottom
+   * margin (see `--step-settle` in StepCard), so its outer height never changes
+   * and nothing below it in the flow is pulled upwards mid-scroll. The last one
+   * is deliberately left uncompensated: it has nothing below it, and keeping it
+   * flush with the bottom of the column is what lands the two columns of the
+   * section on the same line.
+   */
+  --step-collapse: 0;
+
+  /**
+   * How far down this card rests, and how far the one above it does — the two
+   * sums the margins and the sticky offset below are built from. Same story as
+   * `--stack-peek-total`: written by `HowItWorks` so a step can lift by its own
+   * amount, with the old `index x peek` as the fallback.
+   */
+  --peek-before: var(--card-peek-before-sm, calc(var(--card-index, 0) * var(--stack-peek)));
+  --peek-before-prev: var(
+    --card-peek-before-prev-sm,
+    calc(max(var(--card-index, 0) - 1, 0) * var(--stack-peek))
+  );
+
+  @include bp.from("lg") {
+    --peek-before: var(--card-peek-before-lg, calc(var(--card-index, 0) * var(--stack-peek)));
+    --peek-before-prev: var(
+      --card-peek-before-prev-lg,
+      calc(max(var(--card-index, 0) - 1, 0) * var(--stack-peek))
+    );
+  }
+
+  &[data-stacked] {
+    --step-collapse: 1;
+
+    /**
+     * A card in the pile has no link.
+     *
+     * The design's assembled stack shows number, title, tagline, copy and photo
+     * and nothing else: on its export step 04's description ends at y198 of the
+     * card and the photograph starts at 233, with no room in between for the
+     * 29px link our expanded card carries. On desktop the link only scrolls to
+     * a card that is already in front of you, and the products are on screen
+     * beside it anyway — the mobile frame keeps it, because there it is the only
+     * way into them.
+     */
+    @include bp.from("lg") {
+      /* What the card loses with it: the link's own 29 and the 30 the body
+         keeps above it. The stack hands it straight back as bottom margin, the
+         same way it does the 50 of padding, so nothing below moves. */
+      --cta-drop: #{fn.rem(59)};
+
+      [data-step-cta] {
+        display: none;
+      }
+    }
+  }
+
+  &:last-child {
+    --step-settle: 0;
+  }
+
+  /**
    * Two margins, both about how the pile behaves rather than how it looks.
    *
    * A sticky card stops at the bottom of its container, and since every card
@@ -136,28 +262,34 @@
    * of collapsing into itself. The negative top margin on the next card gives
    * the same amount back, so the column's own length is unchanged.
    *
-   * The second term is the height a card gives up as it tightens into the pile
-   * (see `--step-collapse` in StepCard): without it the flow would shift mid
-   * scroll, every card would reach its slot at once and the staircase would
-   * collapse into a single instant.
+   * The peek ladder equalises that moment only for cards of equal height, and
+   * the four steps carry different amounts of text. `--card-slack` is how much
+   * shorter each card is than the last one, measured by `useStackingCards` — the
+   * one part of this geometry a stylesheet cannot know. With it, `margin +
+   * height` is identical across the stack and the release is simultaneous to the
+   * pixel; without it the tallest card leaves first and slices the taglines of
+   * the ones it uncovers. Measured against the last card rather than the tallest
+   * one, the bottom card's own slack is zero, so the pile comes to rest flush
+   * with the bottom of the column instead of floating above it.
    */
-  margin-top: calc(-1 * (var(--card-count, 1) - var(--card-index, 0)) * var(--stack-peek));
-  margin-bottom: calc(
-    (var(--card-count, 1) - 1 - var(--card-index, 0)) * var(--stack-peek) +
-      var(--stack-progress, 0) * #{fn.rem(72)}
+  margin-top: calc(
+    -1 * (var(--stack-peek-total) - var(--peek-before-prev)) - var(--prev-slack, 0px)
   );
+  margin-bottom: calc(var(--stack-peek-total) - var(--peek-before) + var(--card-slack, 0px));
 
   &:first-child {
     margin-top: 0;
   }
 
   position: sticky;
-  top: calc(var(--stack-top) + var(--card-index, 0) * var(--stack-peek));
+  top: calc(var(--stack-top) + var(--peek-before));
 }
 
 .products {
   display: flex;
   flex-direction: column;
+  /* 12 between the label and the filter; the rail adds 3 of its own below,
+     because the design leaves 15 between the filter and the first card. */
   gap: fn.rem(12);
   min-width: 0;
 
@@ -173,10 +305,6 @@
   line-height: fn.line-height(17.6, 16);
   color: var(--color-ink);
   transition: color t.$duration-base t.$ease-out;
-
-  @include bp.from("lg") {
-    text-align: center;
-  }
 }
 
 /* On mobile the products live in the overlay, opened from a step CTA. */

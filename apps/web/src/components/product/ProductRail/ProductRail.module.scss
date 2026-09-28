@@ -3,6 +3,65 @@
 @use "breakpoints" as bp;
 
 /**
+ * The rail's drop shadow.
+ *
+ * A scroller clips its children, so the cards' own `--shadow-soft` survives
+ * only in the gaps between them — at the outer edges of the rail it is cut off
+ * at the scroll box and the whole products column reads as a flat cut-out
+ * against the page, while the design's rail floats like everything else on it.
+ *
+ * Padding the scroller and taking it back with a negative margin would give the
+ * shadow its room, but the same room then shows a 28px slice of the previous
+ * card whenever the rail is scrolled — the shadow and the leak want the exact
+ * same strip. So the outer shadow is drawn once, by a plate the size of the
+ * rail sitting behind it, and the scroller still clips flush with the column.
+ * An outer `box-shadow` paints nothing inside its own box, so the plate is
+ * invisible except around the rail's edges.
+ */
+.frame {
+  position: relative;
+  /* 3 more than the column's own 12: the design leaves 15 between the category
+     pill and the first card. */
+  margin-top: fn.rem(3);
+  /* 2 of slack above and below the cards, which the column has always been
+     measured with. */
+  padding-block: fn.rem(2);
+
+  /* The 3 is a desktop measurement (15 between the category pill and the first
+     card there); the overlay sets its own distance — see `.content` in
+     `MobileProductsSheet`. */
+  @include bp.until("lg") {
+    margin-top: 0;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    /* `z-index: -1` keeps the plate behind the column's own content: without it
+       the top of the shadow lands on the category pill above and reads as a
+       smudge along its lower edge. `.products` is `position: sticky`, so it is
+       a stacking context and the -1 cannot escape it. */
+    z-index: -1;
+    inset: fn.rem(2) 0;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-soft);
+    pointer-events: none;
+
+    /**
+     * Forward, not behind, inside the products overlay. `z-index: -1` puts the
+     * plate behind everything in its stacking context, and the panel's own
+     * white background is in that context — so the rail's whole outer shadow
+     * was painted and then covered up, leaving the cards flat on the panel.
+     * The sticky filter bar above already hides the top of it, which is what
+     * the -1 was for on the desktop column.
+     */
+    @include bp.until("lg") {
+      z-index: 0;
+    }
+  }
+}
+
+/**
  * Products scroll inside this container only: the cards can never spill over
  * the step cards or outside the section, and the rest of the page stays put.
  */
@@ -11,10 +70,29 @@
   @include mx.focus-ring(4px);
 
   align-items: stretch;
-  padding-block: fn.rem(2);
-  /* Room for the cards' drop shadow, which would otherwise be clipped. */
-  padding-inline: fn.rem(2);
-  scroll-padding-inline: fn.rem(2);
+  height: 100%;
+  /**
+   * The scroller's clip has to be the same rounded rectangle as the plate
+   * behind it, or the rail draws a square corner.
+   *
+   * `overflow` clips to the border box, and this box sits exactly on the cards:
+   * same top, same left. A card's own shadow is therefore cut away on every
+   * side — except in the little wedge between its 12px corner and the square
+   * corner of the clip, where it is still inside the scroller and paints. That
+   * wedge, sitting on top of the plate's rounded shadow, is a hard 90-degree
+   * step at each end of the rail, right where the card's corner curves away.
+   * Rounding the clip by the same 12 removes the wedge and leaves the plate's
+   * shadow as the only thing drawing the rail's outer edge.
+   */
+  border-radius: var(--radius-sm);
+
+  /* 8 between the overlay's XS cards, against 12 on the desktop column. The
+     `position` is what keeps the cards above the plate now that it no longer
+     sits at `z-index: -1` — see `.frame`. */
+  @include bp.until("lg") {
+    position: relative;
+    gap: fn.rem(8);
+  }
 }
 
 .item {

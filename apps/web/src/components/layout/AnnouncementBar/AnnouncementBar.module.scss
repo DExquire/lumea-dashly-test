@@ -37,8 +37,26 @@
   text-align: center;
 
   @include bp.from("lg") {
+    /**
+     * Straight off the Figma node (`Announcement Bar`): a fixed 458x44 box with
+     * 20px side padding and the message centred in it — not a pill that hugs its
+     * text. Sizing it by padding alone made the bar 491px, because the designed
+     * message is only 294px wide and the remaining 124px are free space, not
+     * padding. `min-width` reproduces the 458 exactly for the designed copy and
+     * still lets a longer CMS message push the bar wider instead of clipping.
+     */
     width: auto;
-    padding: fn.rem(10) fn.rem(20);
+    min-width: fn.rem(458);
+    /**
+     * Not 10/20 all round: the message is not centred in this bar in the design.
+     * Its ink runs 573..854 inside a bar at 491..948, so its middle is 713.5
+     * against the bar's 719.5 — 6px to the left — and its baseline sits 1px
+     * lower than a centred line box puts it. The bar is 458 wide either way
+     * (`min-width` sets that, and the text plus padding is only 334), so the
+     * extra 12 on the right and the 2 moved from the bottom to the top shift the
+     * message without changing the bar itself.
+     */
+    padding: fn.rem(11) fn.rem(32) fn.rem(9) fn.rem(20);
   }
 }
 

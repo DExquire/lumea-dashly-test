@@ -6,16 +6,32 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(16);
+  /**
+   * 17.1 under the photo, not 16. The photo itself lands on the design to a
+   * hundredth of a pixel (its bottom edge is 1682.00 against 1681.94), but
+   * everything under it — title, volume, both variation groups, the price row
+   * and the buttons — sat 1.1px high, the same 1.1 for all of them, which is
+   * what an overlay shows as a doubled line of text. The 1.1 comes back out of
+   * `.body`'s bottom padding below, so the card is exactly as tall as before
+   * and the rail's height is unchanged.
+   */
+  gap: fn.rem(17.1);
   /* Cards keep a constant width and stretch to the tallest card in the rail, so
      a longer title or an extra variation group never changes the card size. */
   width: fn.rem(264);
   height: 100%;
   padding: fn.rem(8);
-  border: 1px solid var(--color-hairline);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-soft);
+  /**
+   * The hairline is an inset ring rather than a `border`, exactly as on the step
+   * cards: a real border eats 2px of the card's 264 and left the photo 246 wide
+   * against the design's 248, which then shortened it by 2 and pulled every row
+   * under it up by the same amount.
+   */
+  box-shadow:
+    inset 0 0 0 1px var(--color-hairline),
+    var(--shadow-soft);
 }
 
 .media {
@@ -23,9 +39,28 @@
   width: 100%;
   /* Fixed ratio from the design: the image box never shifts while loading. */
   aspect-ratio: 1;
-  overflow: hidden;
+  /**
+   * No `overflow: hidden` here — the photo clips itself instead (see `.image`).
+   *
+   * Clipping the whole box also clipped the drop shadows of the two things that
+   * sit on the photo. The "Sale" badge's shadow was cut dead at the photo's left
+   * edge — 255 on the card, 169 one pixel later — which drew a hard grey bar
+   * down the side of the photo and squared it off against the photo's rounded
+   * corner; the design ramps 249, 231, 196 across the same pixels and the corner
+   * stays round. The favourite button lost the whole lower half of its shadow
+   * the same way: the design carries it about 20px down onto the card (242 …
+   * 251), ours stopped at the photo edge.
+   */
   border-radius: var(--radius-sm);
   background-color: var(--color-surface-muted);
+}
+
+/* The photo is the only child that must be clipped to the rounded box, so it
+   carries the radius itself and the badges' and favourite's shadows stay free
+   to fall on the card, as they do in the design. */
+.image,
+.imageFallback {
+  border-radius: var(--radius-sm);
 }
 
 .image {
@@ -45,7 +80,10 @@
   left: fn.rem(4);
   display: flex;
   flex-wrap: wrap;
-  gap: fn.rem(4);
+  /* 9, not 4: measured on the design, "Bestseller" starts at x979 against our
+     974 while both badges are the same width — the space between them is what
+     differs. */
+  gap: fn.rem(9);
   max-width: calc(100% - #{fn.rem(8)});
 }
 
@@ -80,8 +118,11 @@
 }
 
 .favouriteIcon {
-  width: fn.rem(22);
-  height: fn.rem(20);
+  /* 26x23, measured off the design's own outline inside the 44px button — it
+     was 22x20, which also thinned the 0.6875 stroke of the icon's viewBox to
+     0.74px against the design's 1.0. */
+  width: fn.rem(26);
+  height: fn.rem(23);
 }
 
 .body {
@@ -90,7 +131,10 @@
   flex-direction: column;
   justify-content: space-between;
   gap: fn.rem(12);
-  padding-bottom: fn.rem(4);
+  /* 2.9, the 4 this used to carry minus the 1.1 handed to the gap above the
+     body: the design leaves that much less between the last button and the
+     card's own padding. */
+  padding-bottom: fn.rem(2.9);
 }
 
 .meta {
@@ -122,7 +166,10 @@
   display: flex;
   flex-direction: column;
   gap: fn.rem(8);
-  padding-top: fn.rem(12);
+  /* 8: the variation group carries 2px more above its chips than a plain gap
+     would give, and those are handed back here so the price row and the two
+     buttons land where the design puts them. */
+  padding-top: fn.rem(8);
 }
 
 .actions {
@@ -135,4 +182,145 @@
 .action {
   width: 100%;
   justify-content: flex-start;
+}
+
+/**
+ * The overlay's card is a different card, not this one made smaller.
+ *
+ * "Prod card XS new" in the mobile frame is 160 wide against 264, and the rows
+ * inside it are re-set, not scaled: the title drops to Manrope 500 16/19.2, the
+ * variation chips are gone (the frame keeps them for the opened pop-up, so the
+ * collapsed card runs photo -> title -> price -> buttons), the price row loses
+ * its plate, and "View details" becomes a plain underlined link *above* the
+ * pill instead of a second pill under it. Everything below is measured off that
+ * frame's nodes; the card comes to 355.2 tall, which is what makes the whole
+ * overlay fit a 844px screen without scrolling.
+ */
+@include bp.until("lg") {
+  .root {
+    gap: fn.rem(12);
+    width: fn.rem(160);
+    padding: fn.rem(4) fn.rem(4) fn.rem(12);
+  }
+
+  .media {
+    /* 152x150.2, not square: every row under the photo is measured from its
+       bottom edge, so the 1.8 matters. */
+    aspect-ratio: auto;
+    height: fn.rem(150.2);
+  }
+
+  .badges {
+    gap: fn.rem(4);
+  }
+
+  /* 32.73 across, sitting 3.3 from the photo's right edge and 4.2 up from its
+     bottom, with a 15.34x13.5 heart in it. */
+  .favourite {
+    right: fn.rem(3.3);
+    bottom: fn.rem(4.2);
+    width: fn.rem(32.73);
+    height: fn.rem(32.73);
+  }
+
+  .favouriteIcon {
+    width: fn.rem(15.34);
+    height: fn.rem(13.5);
+  }
+
+  .body {
+    gap: fn.rem(8);
+    padding-bottom: 0;
+  }
+
+  .meta {
+    gap: 0;
+  }
+
+  .title {
+    font-size: fn.rem(16);
+    font-weight: 500;
+    line-height: fn.line-height(19.2, 16);
+  }
+
+  .volume {
+    font-weight: 500;
+  }
+
+  .variations {
+    display: none;
+  }
+
+  .bottom {
+    gap: fn.rem(12);
+    padding-top: 0;
+  }
+
+  .actions {
+    /* The link sits above the pill here, so the column runs backwards rather
+       than the markup being reordered: the pill stays the first thing in the
+       DOM, which is the one a keyboard should reach first. */
+    flex-direction: column-reverse;
+    gap: fn.rem(12);
+  }
+
+  /**
+   * 152x46: the 22px arrow sets the height, and the label and arrow are centred
+   * as a pair rather than pushed left as on desktop.
+   *
+   * 21 at the sides, not the 24 the frame's auto-layout declares: label, gap
+   * and arrow come to 110, which the declared padding would make 158 in a box
+   * fixed at 152 — Figma lets that overflow, a browser wraps the label onto a
+   * second line and the pill comes out 62 tall. 21 is what the frame actually
+   * draws (its label starts at x25 inside a button at x4).
+   */
+  .actions .action {
+    gap: fn.rem(8);
+    justify-content: center;
+    padding: fn.rem(12) fn.rem(21);
+    font-size: fn.rem(16);
+    font-weight: 500;
+    line-height: fn.line-height(19.2, 16);
+    white-space: nowrap;
+  }
+
+  /**
+   * "View details" — a 74x17 underlined label in the frame, no pill, no arrow.
+   *
+   * `> span:first-child` is the button's hover wave: it is a child of a
+   * different module, so it cannot be named from here, and left alone it would
+   * still rise into a link that no longer has a pill to contain it.
+   */
+  .actions .action:last-child {
+    /* `width: auto` alone is not enough: the column stretches its children, so
+       the underline would run the full 152 instead of the label's 74. */
+    align-self: flex-start;
+    /**
+     * Lifted 3.5 without changing what it occupies: the frame draws this label
+     * 3 above the box the button lays out in, so the link's ink sits at y463 of
+     * the card while a 15px line box puts ours at 466. `position` moves the
+     * paint only, so the pill under it and the card's 355.2 stay put.
+     */
+    position: relative;
+    top: fn.rem(-3.5);
+    width: auto;
+    overflow: visible;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--color-ink);
+    font-size: fn.rem(14);
+    font-weight: 400;
+    /* 15, the height of the link's own box in the frame — its 14/16.8 text is
+       drawn 3px above it and overflows both ways, which a line box cannot do. */
+    line-height: fn.line-height(15, 14);
+    letter-spacing: fn.tracking(-2);
+    text-decoration: underline;
+    text-underline-offset: fn.rem(3);
+
+    > span:first-child,
+    > svg {
+      display: none;
+    }
+  }
 }

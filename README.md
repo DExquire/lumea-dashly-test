@@ -58,13 +58,19 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev
 ```
 
+`npm run dev` checks first that the port `apps/cms/.env` points at is actually
+answering, and starts the compose service if it is not — so step 3 is only there
+to make the order explicit. Strapi cannot run without its database, and left to
+itself it spends a minute inside knex and then prints a `KnexTimeoutError` stack
+that says nothing about the real problem; the preflight names it instead (engine
+not running, no disk space for its VM, port taken by something else). The two dev
+servers are also no longer tied together: if one of them stops, the other keeps
+running.
+
 If port 5432 is already taken on your machine (another PostgreSQL, another
 container), set `DATABASE_PORT` to a free port in **both** `.env` and
 `apps/cms/.env` — the first publishes it, the second connects to it — and
-re-create the container with `docker compose up -d --force-recreate --wait`.
-On OrbStack, where published ports can be claimed by other containers, it is
-simpler to skip publishing altogether and point `DATABASE_HOST` at the
-container's own name — `lumea-postgres.orb.local` — with `DATABASE_PORT=5432`.
+re-create the container with `npm run db:reset`.
 
 Generate the Strapi secrets for step 4 with:
 
@@ -188,6 +194,33 @@ collapsed (used to tighten the section padding so the bottom edges of the two
 columns stay aligned), and to scroll a partially covered card back into view when
 it is tapped.
 
+Two things it writes back, because they depend on how the copy happens to wrap and
+a stylesheet cannot know them:
+
+- `--card-slack`. A sticky element is released at `container bottom − its own
+  bottom margin − its own height`, so four cards of four different heights release
+  at four different moments: the tallest slides out first and the steps between
+  the rest collapse, slicing the taglines of the cards it uncovers — and since
+  this is the last section on the page, that broken state is the final thing on
+  screen rather than a moment in passing. Giving each card the difference between
+  the last card's height and its own makes `margin + height` identical across the
+  stack, so all four release on the same pixel and the assembled pile leaves as
+  one block, still exactly one peek apart. Measured against the *last* card, the
+  bottom one's slack is zero, so the pile comes to rest flush with the bottom of
+  its column and the two columns of the section end on the same line.
+- `data-stacked`, set the moment a card reaches its slot. In the design a card is
+  roomy on its own (40px padding) and compact in the pile (15/20), and only the
+  padding changes — the spacing between its own blocks is 10px in both states — so
+  a settled card is exactly 50px shorter. Tying that to the card's own arrival
+  makes it settle once, over a transition, instead of being resized continuously
+  as the page scrolls; and the card hands those 50px straight back as a bottom
+  margin, so its outer height never changes and nothing below it in the flow moves
+  while it tightens. The last card is the exception: it has nothing below it to
+  protect and has to sit flush with the bottom of the column.
+
+`check:interaction` sweeps the whole tail of the page and fails if the step ever
+drops below the peek or if the two columns do not finish together.
+
 **Announcement bar.** All messages are rendered into a single CSS grid cell, so
 the bar is as tall as its tallest message from the first paint: switching messages
 cross-fades and can never change the header height or shift the layout. The cycle
@@ -240,12 +273,16 @@ cards, product cards, price row, variation chips, …) and prints the delta for
 each one — currently every measured value matches the design. It also writes
 full-page screenshots to `apps/web/.visual/`.
 
-`check:interaction` verifies the behavioural requirements: cards actually stack
-while scrolling, the active step follows the stack (and drives the products
-label), tapping a covered card scrolls it into view, messages rotate without
-the bar changing height, and the mobile overlay opens from a step CTA, locks
-page scroll, switches categories and steps, and restores the scroll position on
-close.
+`check:interaction` verifies the behavioural requirements: every card reaches its
+own resting offset, each covered card still shows its number, title and tagline
+inside the peek, nothing inside a card reaches past its edge (in a pile that
+shows as a stray strip beside the stack), the assembled pile leaves as one block
+down to the last pixel of the page, both columns end on the same line clear of
+the window edge, the active step follows the stack (and drives the products
+label),
+tapping a covered card scrolls it into view, messages rotate without the bar
+changing height, and the mobile overlay opens from a step CTA, locks page scroll,
+switches categories and steps, and restores the scroll position on close.
 
 `npm run og` regenerates `public/og-image.jpg` from the live hero, so the social
 preview can never drift from the real page.
@@ -254,7 +291,7 @@ preview can never drift from the real page.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | CMS + frontend together |
+| `npm run dev` | CMS + frontend together (checks the database first) |
 | `npm run dev:web` / `npm run dev:cms` | one of them |
 | `npm run build` | production build of both apps |
 | `npm run db:up` / `npm run db:down` | start / stop PostgreSQL (start blocks until it accepts connections) |

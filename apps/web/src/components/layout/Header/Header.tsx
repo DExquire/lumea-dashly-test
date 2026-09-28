@@ -66,7 +66,11 @@ export function Header({ announcements }: HeaderProps) {
             <HeartIcon />
           </button>
 
-          <button type="button" className={styles.iconButton} aria-label={`Cart, ${CART_COUNT} items`}>
+          <button
+            type="button"
+            className={`${styles.iconButton} ${styles.cartButton}`}
+            aria-label={`Cart, ${CART_COUNT} items`}
+          >
             <CartIcon />
             <span className={styles.cartCount} aria-hidden="true">
               {CART_COUNT}

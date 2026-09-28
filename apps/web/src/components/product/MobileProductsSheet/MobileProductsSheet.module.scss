@@ -8,7 +8,21 @@
   inset: 0;
   z-index: 100;
   display: flex;
-  align-items: flex-end;
+  /* The mobile frame's products block is a full-screen panel (`opened menues`
+     is 371x847 inside a 375x844 frame), not a sheet hugging the bottom edge. */
+  align-items: stretch;
+  /**
+   * The panel scrolls as one page, not from a box inside it.
+   *
+   * The frame's layout comes to exactly 844 — one phone screen — and every
+   * distance in it is fixed, including the 152 of air between the last card and
+   * the step grid. A shorter screen therefore has to scroll, and what should
+   * move is the whole panel: the roller stays whole and you scroll down to the
+   * buttons, rather than the roller being cut off inside a box that scrolls on
+   * its own while the buttons stay put.
+   */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 
   @include bp.from("lg") {
     /* Desktop shows the products inline; the overlay is mobile-only. */
@@ -32,12 +46,15 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: fn.rem(24);
+  /* 40 between the blocks and 60/12 of padding, straight off `opened menues` —
+     32 at the bottom, which is where the frame's own step grid ends (812 of
+     844) rather than the 60 the panel's padding would give. */
+  gap: fn.rem(40);
   width: 100%;
-  max-height: 100%;
-  padding: fn.rem(20) var(--gutter) fn.rem(24);
-  border-start-start-radius: fn.rem(32);
-  border-start-end-radius: fn.rem(32);
+  /* At least the screen, and as tall as its content when that is more — the
+     panel is what scrolls now, so it may not be clipped to 100%. */
+  min-height: 100%;
+  padding: fn.rem(60) fn.rem(12) fn.rem(32);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-float);
   transform: translateY(6%);
@@ -60,21 +77,26 @@
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: fn.rem(12);
 }
 
+/**
+ * The close button is not in the flow: the design puts the title on the panel's
+ * own 60px padding edge and floats a 32px disc at 20 from the top and 23 from
+ * the right, over it.
+ */
 .close {
   @include mx.button-reset;
   @include mx.focus-ring;
 
-  align-self: flex-end;
+  position: absolute;
+  top: fn.rem(20);
+  right: fn.rem(23);
   display: grid;
   place-items: center;
-  width: fn.rem(40);
-  height: fn.rem(40);
+  width: fn.rem(32);
+  height: fn.rem(32);
   border-radius: 50%;
-  background-color: var(--color-sage-tint);
+  background-color: var(--color-text-muted);
   color: var(--color-surface);
   transition: background-color t.$duration-fast t.$ease-out;
 
@@ -86,53 +108,137 @@
 .title {
   font-size: fn.rem(24);
   font-weight: 700;
-  line-height: 1;
+  line-height: fn.line-height(28.8, 24);
+  /* Centred, as the frame sets it: its text node spans the panel's full 347 and
+     is `textAlignHorizontal: CENTER`. Left-aligned, the heading started at the
+     panel's padding edge and every letter of it sat about 87px off. */
+  text-align: center;
   color: var(--color-ink);
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: fn.rem(16);
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /**
+   * The frame puts the filter row at y129 and the first card's top edge at
+   * y191.56 — 8.56 apart. Four of those are already spent inside the two
+   * children: the sticky bar keeps 2 below the pill for its shadow and the rail
+   * keeps 2 above the cards for theirs, and neither may be given up without
+   * clipping something. 3.5 is the rest.
+   */
+  gap: fn.rem(3.5);
+  /**
+   * Never squeezed, never stretched: the roller is drawn at its own height and
+   * the panel grows around it. Shrinking is what used to slice the category
+   * pill in half and cut the cards off, and stretching is what the fixed
+   * distance below now replaces.
+   */
+  flex: none;
+  /**
+   * 109.38 on top of the panel's own 40: the frame's last card ends at 546.76
+   * and its "Shop products for:" starts at 699, and the 2.9 between those two
+   * numbers and ours is what our own rows carry over the frame's (the category
+   * pill renders 55.4 against 54, the chips 35.4 against 35). Spelling the
+   * distance out rather than leaving it to whatever space happens to be over is
+   * what puts the buttons at the bottom of a 844 screen and makes a shorter one
+   * scroll instead of eating the gap.
+   */
+  margin-bottom: fn.rem(109.38);
+
+  > * {
+    flex: none;
+  }
+}
+
+/* The filter stays put while the cards scroll under it, so the categories are
+   always in reach. It is a wrapper rather than the pill itself: the pill has its
+   own `box-shadow`, and a background put on it directly would leave the cards
+   showing through the corners of the row it sits in. */
+.filterBar {
+  position: sticky;
+  /* 0, not the 30 of padding the scroll box carries: a sticky child offsets
+     from the *content* edge, so `top: 30` pushed the pill 30 down its own
+     resting place before anything had even scrolled. */
+  top: 0;
+  /**
+   * The pill row reaches the edge of the screen, like the roller under it: the
+   * frame draws its `menu` 435 wide on a 375 phone and lets the screen cut it,
+   * so the row ends 12px further right than the panel's padding would put it.
+   * The square end itself is `[data-overflowing]` in `CategoryFilter`.
+   */
+  margin-right: fn.rem(-12);
+  z-index: 1;
+  display: flex;
+  /* Only below: above the pill the panel's own 40px gap is the design's
+     distance, and 2 more would push the whole row off it. */
+  padding-block: 0 fn.rem(2);
+  background-color: var(--color-surface);
+}
+
+/**
+ * The roller is not inside the panel's padding: the frame starts its first card
+ * at x22, 10 past the 12 the panel keeps on the left, and lets the row run off
+ * the right edge of the screen so the next card is cut by the phone rather than
+ * by a margin. Both numbers are measured on the frame's own render — the photos
+ * sit at 26..178 and 194..344, so the cards are 22..182 and 190..350 and the
+ * third one is still going at 375.
+ */
+.rail {
+  margin-left: fn.rem(10);
+  margin-right: fn.rem(-12);
 }
 
 .footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: fn.rem(12);
+  /* Whatever a screen taller than the frame's 844 has spare goes here, so the
+     grid still ends 32 above the bottom edge instead of floating mid-panel. */
+  margin-top: auto;
+  /* 16 between the label and the grid (`Categories short Section`). */
+  gap: fn.rem(16);
 }
 
 .footerLabel {
-  font-size: fn.rem(16);
-  font-weight: 700;
-  line-height: 1;
+  /* Manrope 500 at 18/23.4, not 700 at 16. */
+  font-size: fn.rem(18);
+  font-weight: 500;
+  line-height: fn.line-height(23.4, 18);
   color: var(--color-text-muted);
 }
 
 .steps {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: fn.rem(8);
+  /* The design's four cards are 172x35 in a 347-wide grid — 4px apart. */
+  gap: fn.rem(4);
   width: 100%;
 }
 
+/**
+ * Each of the four is a small card, not a pill: 172x35 with a 12px radius, 6 and
+ * 12 of padding and 10 between the numeral and the label — all off the
+ * `categories list` grid in the design.
+ */
 .step {
   @include mx.button-reset;
   @include mx.focus-ring;
 
   display: flex;
   align-items: center;
-  gap: fn.rem(8);
-  padding: fn.rem(10) fn.rem(14);
-  border: 1px solid var(--color-hairline);
-  border-radius: fn.rem(100);
+  gap: fn.rem(10);
+  padding: fn.rem(6) fn.rem(12);
+  border-radius: fn.rem(12);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-soft);
-  color: var(--color-ink);
+  /* Inset ring, not a border: the design's card is 172x35 with the stroke drawn
+     inside it, and a real border made ours 174x37. It is #d9e1e2 here, not the
+     #f0f5f6 used elsewhere — on the frame this outline reads 224 against the
+     white, which the lighter hairline cannot reach. */
+  box-shadow:
+    inset 0 0 0 1px var(--color-hairline-strong),
+    var(--shadow-soft);
+  /* #1b3829, not the mid green: on the frame these labels read almost black. */
+  color: var(--color-green-950);
   transition:
     background-color t.$duration-base t.$ease-out,
     color t.$duration-base t.$ease-out;
@@ -145,9 +251,18 @@
 
 .stepNumeral {
   flex: none;
-  width: fn.rem(44);
-  height: fn.rem(22);
+  /* 41.67x20 in the design's grid, in #bfbfbf — the mobile card's own 100x48
+     numeral at 5/12 scale, which is exactly what the frame draws here (its
+     font is 38.1 against the card's 91.43, and its offsets scale with it). */
+  width: fn.rem(41.67);
+  height: fn.rem(20);
   color: var(--color-border);
+
+  /* This sheet only ever renders below `lg`, so the desktop outline is dead
+     weight here. */
+  &[data-variant="desktop"] {
+    display: none;
+  }
 
   .stepActive & {
     color: var(--color-sage);
@@ -155,7 +270,7 @@
 }
 
 .stepTitle {
-  font-size: fn.rem(16);
+  font-size: fn.rem(18);
   font-weight: 700;
-  line-height: 1;
+  line-height: fn.line-height(23.4, 18);
 }

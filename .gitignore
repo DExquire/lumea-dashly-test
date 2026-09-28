@@ -47,3 +47,8 @@ yarn-error.log*
 
 # visual check output
 .visual/
+
+# Local design-comparison overlay. The Figma frames are Dashly Studio's
+# property and are provided for the test task only — they must never enter the
+# repository or a deploy.
+apps/web/public/design-overlay/

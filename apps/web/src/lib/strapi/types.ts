@@ -45,6 +45,7 @@ export interface StrapiBadgeComponent {
 export interface StrapiVariationValueComponent {
   id: number;
   label: string | null;
+  discountLabel?: string | null;
 }
 
 export interface StrapiVariationGroupComponent {

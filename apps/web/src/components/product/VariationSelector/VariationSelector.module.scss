@@ -15,12 +15,50 @@
   line-height: 1;
   letter-spacing: fn.tracking(-2);
   color: var(--color-text-muted);
+
+  /* The design ends every group label with a colon — "Skin type:", "Size:",
+     "Choose formula:". It belongs to the layout rather than to the content, so
+     an editor never has to remember to type it (and `mapVariationGroups` drops
+     one if they do). */
+  &::after {
+    content: ":";
+  }
 }
 
 .options {
   display: flex;
   flex-wrap: wrap;
-  gap: fn.rem(4);
+  /* A `<legend>` is taken out of the fieldset's flex flow, so `gap` on the root
+     does nothing to the space under the label — it has to be a margin here.
+     4 puts the chip's top border 7px under the label's ink, which is where the
+     design has it (label ink ends 1765, chips start 1772). Together with the
+     40px chip this leaves the group exactly as tall as it was, so nothing
+     below it in the card moves. */
+  margin-top: fn.rem(4);
+  /* 6 between rows, 4 between chips on one row. Measured to the hundredth on
+     the design's two stacked chips: the second one's border sits at 1817.92
+     and the first is 40.15 tall from 1771.6, so the gap is 6.0 — it was 5 back
+     when the chip was wrongly 42 tall. Its three "Skin type" chips sit 4 apart
+     (right border 1026.02, next left border 1031.11). */
+  gap: fn.rem(6) fn.rem(5);
+
+  /**
+   * A group of two puts each chip on its own line, the full width of the card,
+   * as the design does for "Choose formula", "Set includes" and "Choose finish".
+   * Groups of three or more stay on one line at their natural widths — measured
+   * on the design, its "Skin type" chips are 49, 72 and 85 wide with 32px of the
+   * row left empty, so stretching them would be wrong.
+   */
+  &[data-stacked] > * {
+    flex: 1 0 100%;
+  }
+
+  /* A chip that fills the card reads as a row, not as a tag: the design puts its
+     label against the left edge with 6px of air, not centred. */
+  &[data-stacked] .chip {
+    justify-content: flex-start;
+    padding-inline: fn.rem(6);
+  }
 }
 
 .option {
@@ -34,14 +72,33 @@
 }
 
 .chip {
+  position: relative;
   display: inline-flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
+  /* 40 including the 1px border on each side. Both of the design's chip rows
+     run border-row to border-row 1772..1811 and 1842..1881 — 40, not the 42
+     this used to carry, which pushed every chip 2px over. */
   min-height: fn.rem(40);
-  padding: fn.rem(8) fn.rem(12);
+  /**
+   * 11.4 at the sides, not 12. Solved from the design rather than guessed: for
+   * the same string the browser lays out the same advance width, so the chip's
+   * width minus that advance is twice the padding plus the two borders. Across
+   * all six of the design's chips — Dry 47, Normal 72, Sensitive 86, 30 ml 60,
+   * 50 ml 60, 100 ml 67 — that gives 11.33 to 11.48 every time. The 12 it used
+   * to carry made every chip 1.2px too wide, and since chips sit in a row the
+   * error piled up: the third chip of a row started 2.6px past the design, and
+   * the discount badges hanging off them went with it.
+   */
+  padding: fn.rem(8) fn.rem(11.4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
   background-color: var(--color-surface);
+  /* The design's chips are lifted like everything else on the page: below one
+     the page runs 236 and climbs back to white over ~16px, and there is the
+     same fall-off to the left and right. This was flat white. */
+  box-shadow: var(--shadow-soft);
   color: var(--color-ink);
   font-size: fn.rem(14);
   font-weight: 700;
@@ -59,10 +116,66 @@
   }
 }
 
+/**
+ * The tilted discount badge on a chip's top edge ("-10 %", "-20%").
+ *
+ * Measured on the design: a 43x21 pill, fully rounded, its centre sitting
+ * exactly on the chip's top border — hence `top: 0` plus `translateY(-50%)`.
+ *
+ * Horizontally the design hangs it off the chip's top-right corner, 8px past
+ * the edge, except on the last chip of a row, where it is pulled 7px inside
+ * instead so it does not stick out into the card's margin. Those are the only
+ * two it draws ("-10 %" on 50 ml, "-20%" on 100 ml) and they are 1.6 and 2.8px
+ * from these positions.
+ *
+ * `z-index` matters: the badge on "50 ml" reaches over "100 ml", and without it
+ * the later chip would paint on top of it. `.chip` is `position: relative` with
+ * `z-index: auto`, so it is not a stacking context and this 1 is resolved
+ * against the card.
+ */
+.discount {
+  position: absolute;
+  /* -0.6 and -8.8 are the last of the measurement, not round numbers: with the
+     badge centred on the chip's top border its painted centre landed 1.4 low
+     and 0.8 left of the design's. */
+  top: fn.rem(-1.4);
+  right: fn.rem(-8.8);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: fn.rem(21);
+  /* 4px each side: the design's "-10 %" is 35px of ink in a 43px pill. */
+  padding-inline: fn.rem(4);
+  border-radius: fn.rem(200);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  font-size: fn.rem(14);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: fn.tracking(-2);
+  white-space: nowrap;
+  /* The design tilts every one of these badges anticlockwise — the same few
+     degrees as the price badge. Fitted to the pill's top and bottom edges on
+     the export: -2.9 and -2.0 degrees, so -3 for both. */
+  transform: translateY(-50%) rotate(-3deg);
+}
+
+/* The last chip of a row keeps its badge inside, as the design does — and a
+   chip that fills the card is always the end of its row, so it does too.
+   Otherwise the badge would hang over the card's 8px padding and touch its
+   edge. */
+.option:last-child .discount,
+.options[data-stacked] .discount {
+  right: fn.rem(5.8);
+}
+
+/* Selected: the sage fill carries the state on its own. The design keeps the
+   label the same near-black ink as every other chip — sampling its selected
+   "Dry" and "Hyaluronic Acid 2%" gives the same darkness as the unselected
+   ones, only tinted by the fill behind the anti-aliasing. */
 .input:checked + .chip {
   background-color: var(--color-sage-tint);
   border-color: var(--color-sage);
-  color: var(--color-green-900);
 }
 
 .input:focus-visible + .chip {

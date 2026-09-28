@@ -104,6 +104,17 @@ export function CartIcon(props: IconProps) {
   );
 }
 
+/**
+ * `strokeWidth` is 0.9, not the 0.6875 this carried before.
+ *
+ * 0.6875 is what you get by taking a 1px stroke drawn on a 32px icon down to
+ * 22, and at 22px it lands under a whole pixel: the diagonal renders as a chain
+ * of light dots rather than a line. Measured against the design's export — the
+ * ink over the arrow's box in step 01's "Shop cleansers" — ours came to 77% of
+ * the design's weight; 0.875 gives 98% and 0.9375 overshoots to 104%, so 0.9 is
+ * the match. The straight strokes agree: the design's horizontal bar and right
+ * upright cover 0.78 and 0.76 of a pixel against our 0.68.
+ */
 export function ArrowUpRightIcon(props: IconProps) {
   return (
     <svg
@@ -118,14 +129,14 @@ export function ArrowUpRightIcon(props: IconProps) {
       <path
         d="M5.5 16.5L16.5 5.5"
         stroke="currentColor"
-        strokeWidth="0.6875"
+        strokeWidth="0.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M7.5625 5.5H16.5V14.4375"
         stroke="currentColor"
-        strokeWidth="0.6875"
+        strokeWidth="0.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

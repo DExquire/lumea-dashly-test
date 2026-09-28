@@ -25,7 +25,12 @@ export function VariationSelector({ group, productId }: VariationSelectorProps) 
     <fieldset className={styles.root}>
       <legend className={styles.legend}>{group.name}</legend>
 
-      <div className={styles.options}>
+      {/*
+        Two options go one per line and fill the card, three or more share a
+        line and keep their own width — that is how the design lays out
+        "Choose formula" against "Skin type" and "Size".
+      */}
+      <div className={styles.options} data-stacked={group.options.length < 3 ? '' : undefined}>
         {group.options.map((option) => (
           <label key={option.id} className={styles.option}>
             <input
@@ -36,7 +41,16 @@ export function VariationSelector({ group, productId }: VariationSelectorProps) 
               checked={selectedId === option.id}
               onChange={() => setSelectedId(option.id)}
             />
-            <span className={styles.chip}>{option.label}</span>
+            <span className={styles.chip}>
+              {option.label}
+              {/*
+                The badge is a real part of the label, not decoration: a screen
+                reader should announce "50 ml -10 %". It is taken out of the
+                chip's flow so it cannot shift the label off centre or make the
+                chip taller — in the design it straddles the chip's top edge.
+              */}
+              {option.discount && <span className={styles.discount}>{option.discount}</span>}
+            </span>
           </label>
         ))}
       </div>

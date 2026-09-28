@@ -1,5 +1,6 @@
 @use "functions" as fn;
 @use "mixins" as mx;
+@use "breakpoints" as bp;
 
 .root {
   display: flex;
@@ -7,7 +8,9 @@
   justify-content: space-between;
   gap: fn.rem(8);
   min-height: fn.rem(44);
-  padding: fn.rem(4) fn.rem(12) fn.rem(4) fn.rem(24);
+  /* 24 left, 26 right, measured on the design: its old price starts 24 inside
+     the row and the discount badge ends 26 before its right edge. */
+  padding: fn.rem(4) fn.rem(26) fn.rem(4) fn.rem(24);
   border-radius: var(--radius-xl);
   background-color: var(--color-surface-muted);
 }
@@ -53,8 +56,50 @@
   font-size: fn.rem(16);
   font-weight: 700;
   line-height: fn.line-height(17.6, 16);
+  /* The design tilts this badge anticlockwise rather than sitting it square on
+     the row. Fitted to its top and bottom edges on the export: -2.35 and -2.9
+     degrees. A transform keeps the row's layout exactly as measured — only the
+     paint rotates — and a fully rounded pill's painted box barely grows, which
+     is why the design's is still 54x31 for a 54x30 badge. */
+  transform: rotate(-3deg);
 }
 
 .srOnly {
   @include mx.visually-hidden;
+}
+
+/**
+ * On the overlay's card the price row is not a plate: the frame draws a bare
+ * 152x27 line of "Price" and the amount at Manrope 500 16/19.2, two apart, with
+ * the discount pill floating at its right. The old price is not shown there at
+ * all - the frame keeps it for the opened pop-up.
+ */
+@include bp.until("lg") {
+  .root {
+    min-height: fn.rem(27);
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .original {
+    display: none;
+  }
+
+  .currentRow {
+    gap: fn.rem(2);
+  }
+
+  .currentLabel,
+  .current {
+    font-size: fn.rem(16);
+    font-weight: 500;
+    line-height: fn.line-height(19.2, 16);
+  }
+
+  .discount {
+    padding: fn.rem(4) fn.rem(8);
+    font-weight: 500;
+    line-height: fn.line-height(19.2, 16);
+  }
 }

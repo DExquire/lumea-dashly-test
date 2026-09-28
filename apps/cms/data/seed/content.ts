@@ -20,6 +20,11 @@ export interface SeedCategory {
   sortOrder: number;
 }
 
+export interface SeedVariationValue {
+  label: string;
+  discountLabel?: string;
+}
+
 export interface SeedProduct {
   title: string;
   volume?: string;
@@ -27,7 +32,13 @@ export interface SeedProduct {
   salePrice?: number;
   discountPercent?: number;
   badges?: { label: string; tone: 'neutral' | 'sale' | 'new' | 'bestseller' }[];
-  variationGroups?: { name: string; values: string[] }[];
+  /**
+   * A value is either a plain label or a label with the small tilted badge the
+   * design pins to the top edge of the chip ("-10 %"). The badge is free text
+   * rather than a number: the design writes one as "-10 %" and the next as
+   * "-20%", and an editor may want "2 for 1" there just as easily.
+   */
+  variationGroups?: { name: string; values: (string | SeedVariationValue)[] }[];
   categoryKeys: string[];
   /** File name inside `data/seed/images`. */
   image?: string;
@@ -37,7 +48,7 @@ export interface SeedProduct {
 export const seedAnnouncements: SeedAnnouncement[] = [
   { message: 'Get 15% off with code LUMEAFIRST15', sortOrder: 0 },
   { message: 'Free delivery on orders over £40', sortOrder: 1 },
-  { message: 'New: barrier-repair serum is now in stock', sortOrder: 2 },
+  { message: 'New: barrier-repair serum in stock', sortOrder: 2 },
 ];
 
 export const seedCategories: SeedCategory[] = [
@@ -73,7 +84,14 @@ export const seedProducts: SeedProduct[] = [
     ],
     variationGroups: [
       { name: 'Skin type', values: ['Dry', 'Normal', 'Sensitive'] },
-      { name: 'Size', values: ['30 ml', '50 ml', '100 ml'] },
+      {
+        name: 'Size',
+        values: [
+          '30 ml',
+          { label: '50 ml', discountLabel: '-10 %' },
+          { label: '100 ml', discountLabel: '-20%' },
+        ],
+      },
     ],
     categoryKeys: ['cleansers'],
     image: 'product-moisturiser.webp',

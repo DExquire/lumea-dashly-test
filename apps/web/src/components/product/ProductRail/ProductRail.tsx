@@ -36,16 +36,20 @@ export function ProductRail({
   }
 
   return (
-    <ul className={styles.track} tabIndex={0} role="list" aria-label={label}>
-      {products.map((product, index) => (
-        <li key={product.id} className={styles.item}>
-          <ProductCard
-            product={product}
-            imageSizes={imageSizes}
-            priority={prioritizeFirstImage && index === 0}
-          />
-        </li>
-      ))}
-    </ul>
+    /* The wrapper exists only to carry the rail's drop shadow, which the
+       scroller itself cannot paint outside its own edges. */
+    <div className={styles.frame}>
+      <ul className={styles.track} tabIndex={0} role="list" aria-label={label}>
+        {products.map((product, index) => (
+          <li key={product.id} className={styles.item}>
+            <ProductCard
+              product={product}
+              imageSizes={imageSizes}
+              priority={prioritizeFirstImage && index === 0}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -68,7 +68,9 @@
 /* Sizes: 248x44 inside product cards (`sm`), 206x54 for `md`,
    234x54 on mobile / 365x84 on desktop for `lg`. */
 .sm {
-  padding: fn.rem(12) fn.rem(24);
+  /* 11, not 12: the row's height is set by the 22px arrow rather than the 17.6px
+     text, so a 12px padding makes the button 46 against the design's 44. */
+  padding: fn.rem(11) fn.rem(24);
   font-size: fn.rem(16);
   line-height: fn.line-height(17.6, 16);
 }
@@ -80,9 +82,16 @@
 }
 
 .lg {
-  padding: fn.rem(16) fn.rem(32);
+  /**
+   * 32.5 at the sides on mobile, and the label tracked in by 2%. The mobile
+   * frame draws this pill 234 wide around a 139px label; untracked at 18px the
+   * label alone measured 145 and the pill came out 239, so it overhung the
+   * design by 2.5px on each side.
+   */
+  padding: fn.rem(16) fn.rem(32.5);
   font-size: fn.rem(18);
   line-height: fn.line-height(21.6, 18);
+  letter-spacing: fn.tracking(-2);
 
   /* Interpolated between the 1024 and 1440 widths rather than fixed at the
      design value: this button sits next to the absolutely placed hero artwork,

@@ -10,6 +10,7 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { chromiumLaunchOptions } from './find-chromium.mjs';
 
 const url = process.argv[2] ?? 'http://localhost:3000';
 const outDir = process.argv[3] ?? path.join(process.cwd(), '.visual');
@@ -153,6 +154,132 @@ async function stackingCards(page) {
     `slack per covered card: ${peekFits.join(', ')}px`,
   );
 
+  // A card in the pile is covered only as far as the card in front of it is
+  // wide, so anything reaching past its own edge — a photo hung on the right,
+  // a shadow given a negative margin — surfaces as a stray strip beside the
+  // stack instead of being hidden behind the next card.
+  const bleed = await page.evaluate((cardSelector) => {
+    const worst = { amount: 0, what: '' };
+
+    for (const card of document.querySelectorAll(cardSelector)) {
+      const edge = card.getBoundingClientRect();
+
+      for (const child of card.querySelectorAll('*')) {
+        // Shapes inside an <svg> report boxes in their own coordinate space
+        // (a <defs> sits at the origin), so only the <svg> element itself —
+        // which is laid out like any other box — is meaningful here.
+        if (child.ownerSVGElement) {
+          continue;
+        }
+
+        const box = child.getBoundingClientRect();
+
+        if (box.width === 0 || box.height === 0) {
+          continue;
+        }
+
+        const over = Math.round(Math.max(box.right - edge.right, edge.left - box.left));
+
+        if (over > worst.amount) {
+          worst.amount = over;
+          worst.what = `${child.tagName.toLowerCase()}.${`${child.className}`.replace(/.*__/, '')}`;
+        }
+      }
+    }
+
+    return worst;
+  }, sel('StepCard', 'root'));
+
+  check(
+    'nothing inside a card reaches past its edge',
+    bleed.amount <= 1,
+    bleed.amount > 1 ? `${bleed.what} sticks out ${bleed.amount}px` : 'every card clips to its own width',
+  );
+
+  /**
+   * Once assembled, the pile has to *leave* as one block.
+   *
+   * A sticky card is released at `container bottom − its bottom margin − its own
+   * height`, so cards of different heights release at different moments: the
+   * tallest one slides out first and the steps between the others drift apart
+   * and — worse — collapse, slicing the taglines of the cards it uncovers. This
+   * is the last section on the page, so that broken state is not a moment in
+   * passing, it is the final thing on screen. Sweep the whole tail in small
+   * steps and require the step to stay one peek the entire way down.
+   */
+  const release = await page.evaluate(
+    async ({ itemSelector, from }) => {
+      const steps = () => {
+        const tops = [...document.querySelectorAll(itemSelector)].map(
+          (item) => item.getBoundingClientRect().top,
+        );
+
+        return tops.slice(1).map((top, index) => Math.round(top - tops[index]));
+      };
+
+      const limit = () => document.documentElement.scrollHeight - window.innerHeight;
+
+      window.scrollTo({ top: from, behavior: 'instant' });
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const peek = steps()[0];
+      let worst = { step: Number.POSITIVE_INFINITY, scrollY: from };
+
+      for (let y = from; y <= limit(); y += 40) {
+        window.scrollTo({ top: y, behavior: 'instant' });
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+        for (const step of steps()) {
+          if (step < worst.step) {
+            worst = { step, scrollY: Math.round(window.scrollY) };
+          }
+        }
+      }
+
+      return { peek, worst };
+    },
+    { itemSelector: sel('HowItWorks', 'stackItem'), from: assembledAt ?? 0 },
+  );
+
+  check(
+    'the assembled pile leaves as one block',
+    assembledAt !== undefined && release.worst.step >= release.peek - 2,
+    `smallest step below the assembled ${release.peek}px is ${release.worst.step}px (at scrollY ${release.worst.scrollY})`,
+  );
+
+  /**
+   * The last screen of the page.
+   *
+   * This is the final section, so wherever the two columns happen to stop is
+   * what the visitor is left looking at. The pile comes to rest at the bottom of
+   * its column and the taller products column is pushed up to the same line, so
+   * the two have to finish together — and the section's trailing band has to
+   * keep both of them off the window edge, or the bottom row of product buttons
+   * reads as cut off rather than as the end of the page.
+   */
+  const ending = await page.evaluate(
+    async ({ cardSelector, productsSelector }) => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      const cards = [...document.querySelectorAll(cardSelector)];
+      const products = document.querySelector(productsSelector);
+
+      return {
+        card: Math.round(cards[cards.length - 1].getBoundingClientRect().bottom),
+        products: Math.round(products.getBoundingClientRect().bottom),
+        viewport: window.innerHeight,
+      };
+    },
+    { cardSelector: sel('StepCard', 'root'), productsSelector: sel('HowItWorks', 'products') },
+  );
+
+  check(
+    'both columns end on the same line, clear of the window edge',
+    Math.abs(ending.card - ending.products) <= 2 && ending.viewport - ending.products >= 24,
+    `last card ${ending.card}px, products ${ending.products}px, window ${ending.viewport}px`,
+  );
+
   // Tapping a covered card should scroll it back into full view.
   // Scroll so later cards are stacked, then tap a covered one.
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), (sectionBox?.y ?? 0) + (sectionBox?.height ?? 0) * 0.75);
@@ -233,6 +360,52 @@ async function mobileOverlay(page) {
   check('categories are switchable inside the overlay', (await categories.count()) > 1);
   check('all four steps are switchable at the bottom', (await steps.count()) === 4);
 
+  /**
+   * The rail inside the sheet is taller than the sheet, and a flex column with
+   * `overflow-y: auto` will happily take that difference out of its other
+   * children: the category filter once collapsed to the 8px of its own padding
+   * with its chips spilling out above it, sliced in half, and the cards were cut
+   * off with no way to scroll to them. Behaviour checks all passed through it,
+   * so these two assert the geometry instead.
+   */
+  const sheetLayout = await page.evaluate(
+    (s) => {
+      // Scoped to the sheet: the desktop column carries its own filter, hidden
+      // at this width, and an unscoped query would measure that one at 0.
+      const content = document.querySelector(s.content);
+      const filter = content.querySelector(s.filter);
+
+      const card = content.querySelector(s.card);
+
+      return {
+        filterHeight: filter.getBoundingClientRect().height,
+        scrollable: content.scrollHeight - content.clientHeight,
+        cardHeight: card.getBoundingClientRect().height,
+        viewHeight: content.clientHeight,
+      };
+    },
+    {
+      content: sel('MobileProductsSheet', 'content'),
+      filter: sel('CategoryFilter', 'root'),
+      card: sel('ProductCard', 'root'),
+    },
+  );
+
+  check(
+    'the category filter is not squeezed by the rail',
+    sheetLayout.filterHeight > 40,
+    `filter is ${Math.round(sheetLayout.filterHeight)}px tall`,
+  );
+  /* The overlay's card is 355 tall and fits the panel outright, so there is
+     normally nothing to scroll — what matters is that the whole of it is
+     reachable one way or the other, which is what the squeezed layout broke. */
+  check(
+    'the whole card is reachable',
+    sheetLayout.cardHeight <= sheetLayout.viewHeight || sheetLayout.scrollable > 0,
+    `card ${Math.round(sheetLayout.cardHeight)}px in ${Math.round(sheetLayout.viewHeight)}px` +
+      (sheetLayout.scrollable > 0 ? `, ${Math.round(sheetLayout.scrollable)}px of scroll` : ''),
+  );
+
   await page.screenshot({ path: path.join(outDir, 'mobile-overlay.png') });
 
   // Switching the step keeps the overlay open and moves the active state.
@@ -260,8 +433,7 @@ async function mobileOverlay(page) {
 async function run() {
   await mkdir(outDir, { recursive: true });
 
-  const executablePath = process.env.CHROMIUM_PATH;
-  const browser = await chromium.launch(executablePath ? { executablePath } : {});
+  const browser = await chromium.launch(chromiumLaunchOptions());
 
   try {
     const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });

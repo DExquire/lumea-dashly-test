@@ -28,7 +28,15 @@
   padding-inline: var(--gutter);
 
   @include bp.from("lg") {
-    justify-content: space-between;
+    /* Three tracks rather than `space-between`: the design centres the nav on
+       the page, not between the logo and the icons, so the moment either of
+       those changes width — a longer word, one icon more — `space-between`
+       would slide the nav off centre. Measured against the design's export, it
+       sat 4px to the right. */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-content: initial;
     min-height: fn.rem(78);
   }
 }
@@ -88,6 +96,7 @@
 .actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: fn.rem(4);
 
   @include bp.from("lg") {
@@ -131,6 +140,23 @@
   }
 }
 
+/**
+ * The cart is 44 on the mobile frame, not the 40 the other icons use.
+ *
+ * Its counter is the one unambiguous landmark here — a solid 20x20 disc — and
+ * the design puts it at 349..368 by 109..128. The counter hangs 8 past the
+ * button's right edge and 4 below it, so the design's button is 317..361 by
+ * 81..125: 44 square, sitting on the row's 14px gutter. With it at 40 the whole
+ * row came out 4px short, which is what pushed the burger and the heart off
+ * their marks as well — the 4px gap between the three is right either way.
+ */
+.cartButton {
+  @include bp.until("lg") {
+    width: fn.rem(44);
+    height: fn.rem(44);
+  }
+}
+
 /* Burger: mobile only, and tinted like the Figma mobile header. */
 .menuButton {
   background-color: var(--color-sage-tint);
@@ -153,8 +179,10 @@
 
 .cartCount {
   position: absolute;
-  right: fn.rem(-2);
-  bottom: fn.rem(-2);
+  /* Measured off the design's export: the counter hangs 8px past the right edge
+     of the button and 4px below it, not 2px on both. */
+  right: fn.rem(-8);
+  bottom: fn.rem(-4);
   display: grid;
   place-items: center;
   min-width: fn.rem(20);

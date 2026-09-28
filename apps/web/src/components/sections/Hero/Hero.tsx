@@ -57,21 +57,11 @@ export function Hero({ announcements }: HeroProps) {
               src="/images/hero-detail.webp"
               alt=""
               fill
-              sizes="220px"
+              sizes="184px"
             />
           </figure>
 
           <article className={styles.essentials}>
-            <div className={styles.essentialsMedia}>
-              <Image
-                src="/images/hero-product.webp"
-                alt="LUMEA essentials serum bottle"
-                fill
-                sizes="127px"
-                className={styles.essentialsImage}
-              />
-            </div>
-
             <p className={styles.essentialsTitle}>LUMEA essentials</p>
             <p className={styles.essentialsText}>
               Simple formulas. Thoughtful ingredients. Everyday results.

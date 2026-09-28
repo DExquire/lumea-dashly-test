@@ -65,7 +65,16 @@ function buildProductData(
     badges: (product.badges ?? []).map((badge) => ({ label: badge.label, tone: badge.tone })),
     variationGroups: (product.variationGroups ?? []).map((group) => ({
       name: group.name,
-      values: group.values.map((label) => ({ label })),
+      // A value is written in the seed either as a plain label or as an object
+      // carrying the chip's tilted discount badge.
+      values: group.values.map((value) =>
+        typeof value === 'string'
+          ? { label: value }
+          : {
+              label: value.label,
+              ...(value.discountLabel ? { discountLabel: value.discountLabel } : {}),
+            },
+      ),
     })),
     categories: product.categoryKeys
       .map((key) => categoryIds[key])

@@ -15,7 +15,7 @@ import styles from './MobileProductsSheet.module.scss';
 interface MobileProductsSheetProps {
   /** Called once the closing animation has finished. */
   onClose: () => void;
-  /** Heading of the overlay, e.g. "Shop cleansers". */
+  /** Heading of the overlay: "Shop " plus the active category, e.g. "Shop cleansers". */
   title: string;
   steps: RoutineStep[];
   activeStepIndex: number;
@@ -102,13 +102,21 @@ export function MobileProductsSheet({
         </div>
 
         <div className={styles.content}>
-          <CategoryFilter
-            categories={categories}
-            activeCategoryId={activeCategoryId}
-            onSelect={onCategorySelect}
-          />
+          {/* The wrapper is what sticks to the top of the scrolling area — see
+              `.filterBar`; the pill itself carries its own shadow. */}
+          <div className={styles.filterBar}>
+            <CategoryFilter
+              categories={categories}
+              activeCategoryId={activeCategoryId}
+              onSelect={onCategorySelect}
+            />
+          </div>
 
-          <ProductRail products={products} label={`${title} products`} imageSizes="70vw" />
+          {/* Wrapped so the roller can bleed past the panel's padding — see
+              `.rail`. */}
+          <div className={styles.rail}>
+            <ProductRail products={products} label={`${title} products`} imageSizes="152px" />
+          </div>
         </div>
 
         <div className={styles.footer}>

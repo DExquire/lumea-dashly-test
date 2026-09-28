@@ -8,12 +8,13 @@
 
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { chromiumLaunchOptions } from './find-chromium.mjs';
 
 const url = process.argv[2] ?? 'http://localhost:3000';
 const output = path.join(process.cwd(), 'public', 'og-image.jpg');
 
 const browser = await chromium.launch(
-  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
+  chromiumLaunchOptions(),
 );
 
 try {

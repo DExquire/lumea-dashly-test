@@ -10,10 +10,38 @@
   align-self: flex-start;
   max-width: 100%;
   padding: fn.rem(4);
-  border: 1px solid var(--color-hairline);
   border-radius: fn.rem(200);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-soft);
+  /* Inset ring instead of a border: a real one made the pill 78 tall against the
+     design's 76 and pushed the product rail 2px down with it. */
+  box-shadow:
+    inset 0 0 0 1px var(--color-hairline),
+    var(--shadow-soft);
+
+  /**
+   * The pill in the mobile products panel carries no stroke at all and a
+   * shadow of its own — see `--shadow-filter-mobile`. With `--shadow-soft` the
+   * 25px band the frame draws above the pill was missing entirely, and the ring
+   * drew an outline the frame has not got.
+   */
+  @include bp.until("lg") {
+    box-shadow: var(--shadow-filter-mobile);
+
+    /**
+     * Squared off where the screen cuts it.
+     *
+     * The frame's pill is 435 wide on a 375 phone, so its rounded right end is
+     * simply never drawn — the row runs off the edge. Ours ends at the screen,
+     * and a stadium's cap curves inward by half its height, which put a visible
+     * round end and its shadow where the frame has a straight cut. The corners
+     * are squared only while the row is actually wider than its box, so a
+     * shorter list of categories still ends in its own cap.
+     */
+    &[data-overflowing="true"] {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+  }
   /* More categories than fit are reachable by scrolling the pill itself, so the
      row never wraps into a second line or pushes the products down. */
   overflow-x: auto;
@@ -24,7 +52,12 @@
   }
 
   @include bp.from("lg") {
-    gap: fn.rem(24);
+    /* 30.3 between chips. Solved from the design's own positions: its active
+       pill ends at 773.1, "Face Wash" starts at 803.8 and "Makeup Removers" at
+       983.9, so both gaps are 30.3 with 29 of side padding inside the inactive
+       chips. The 33 this used to carry only looked right because the active
+       pill was 3px too narrow and cancelled part of it out. */
+    gap: fn.rem(30.3);
   }
 }
 
@@ -33,11 +66,14 @@
   @include mx.focus-ring;
 
   flex: none;
-  padding: fn.rem(14) fn.rem(24);
+  /* 12 all round and 18/23.4 on the mobile frame (`menu` in the products
+     pop-up); the desktop frame's own numbers are below. The labels there are
+     Manrope 400, not 700 — only the selected one steps up, to 500. */
+  padding: fn.rem(12);
   border-radius: fn.rem(200);
   color: var(--color-ink);
-  font-size: fn.rem(16);
-  font-weight: 700;
+  font-size: fn.rem(18);
+  font-weight: 400;
   line-height: fn.line-height(23.4, 18);
   white-space: nowrap;
   transition:
@@ -51,15 +87,35 @@
   }
 
   @include bp.from("lg") {
-    padding: fn.rem(24) fn.rem(32);
-    font-size: fn.rem(18);
+    /* 22.3 vertically: the design's chip is 68 tall around a 23.4px line, and a
+       24px padding made it 71. */
+    padding: fn.rem(22.3) fn.rem(29);
+    font-weight: 700;
   }
 }
 
+/**
+ * The design styles the selected pill as its own thing rather than as the same
+ * chip with a dark fill: its label is tracked in by 2% and it carries 32.25 of
+ * side padding instead of 29. Both were measured, not guessed — the glyph gaps
+ * of its "Cleansers" run 3.5px tighter than ours across the word while the two
+ * unselected labels match ours letter for letter, and the pill itself spans
+ * 623.5..773.1, which is 3.3px wider than the same label at 29 of padding.
+ */
 .active {
   background-color: var(--color-ink);
   box-shadow: var(--shadow-soft);
   color: var(--color-surface);
+  font-weight: 500;
+
+  @include bp.from("lg") {
+    font-weight: 700;
+  }
+
+  @include bp.from("lg") {
+    padding-inline: fn.rem(32.25);
+    letter-spacing: fn.tracking(-2);
+  }
 
   @include mx.hover {
     background-color: var(--color-ink);

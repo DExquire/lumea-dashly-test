@@ -39,11 +39,15 @@ export interface ProductVariationGroup extends Struct.ComponentSchema {
 export interface ProductVariationValue extends Struct.ComponentSchema {
   collectionName: 'components_product_variation_values';
   info: {
-    description: 'One selectable value inside a variation group, e.g. "30 ml" or "Hyaluronic Acid 2%".';
+    description: 'One selectable value inside a variation group, e.g. "30 ml" or "Hyaluronic Acid 2%". `discountLabel` is the optional tilted badge the design pins to the top edge of the chip ("-10 %").';
     displayName: 'Variation value';
     icon: 'bulletList';
   };
   attributes: {
+    discountLabel: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 12;
+      }>;
     label: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
