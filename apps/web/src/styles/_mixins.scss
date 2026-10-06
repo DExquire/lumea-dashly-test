@@ -69,7 +69,15 @@
   display: flex;
   gap: $gap;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
+  /**
+   * `none`, not `contain`: both stop the scroll from chaining to the page, but
+   * only `none` also turns off the overscroll affordance — the rubber band that
+   * lets a trackpad drag the row past its first and last card and snap it back.
+   * The row has two ends and should feel like it. It also takes the browser's
+   * horizontal swipe gesture off the table, so a flick at the end of the rail
+   * can no longer navigate back.
+   */
+  overscroll-behavior-x: none;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

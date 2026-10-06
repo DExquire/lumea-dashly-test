@@ -34,10 +34,10 @@
    * The card's 1px stroke, as a masked gradient in the border's own 1px of
    * padding — the only way to give a border a gradient and keep the radius.
    *
-   * The node has it as a vertical gradient from #f3f5f5 to #f5fcfd, which
-   * against the card's own #f3f5f5 fill is all but invisible. An earlier pass
-   * read the design's edge off the export, took the shadow for the stroke, and
-   * put a sage #bcd6ce ring here that the design has nothing of.
+   * The mobile frame's card has it as a vertical gradient from #f3f5f5 to
+   * #f5fcfd, which against the card's own #f3f5f5 fill is all but invisible.
+   * The desktop card's is a different stroke entirely — see the `bp.from("lg")`
+   * override below.
    */
   &::after {
     content: "";
@@ -84,6 +84,28 @@
   @include bp.from("lg") {
     min-height: var(--card-min-height, 0);
     border-radius: var(--radius-2xl);
+
+    /**
+     * The desktop card's own stroke — the green hairline the export draws round
+     * the card, which the mobile card has no trace of.
+     *
+     * One colour the whole way round. The node's own stroke is a radial
+     * gradient that fades towards the left, so the export's line is clearest
+     * down the right edge and nearly gone on the far side; drawn evenly instead
+     * it reads as one ring rather than as a highlight, which is what this card
+     * wants. The value is the gradient's strong end, measured off the export at
+     * the right edge: (194,218,210) over the card's own #f3f5f5.
+     *
+     * `inset: -1px` because the node's stroke is aligned OUTSIDE: the line sits
+     * on the pixel past the card's own 500x546, not inside it, so the card's
+     * width is unchanged and the ring reads a pixel further out — which is
+     * where the export has it.
+     */
+    &::after {
+      inset: -1px;
+      border-radius: calc(var(--radius-2xl) + 1px);
+      background: var(--card-ring-rim);
+    }
     /**
      * No shared `gap` between the three blocks: measured against the design's
      * export, the space above the body and the space above the photo are not
@@ -116,10 +138,13 @@
       var(--step-collapse, 0) * var(--step-settle, 1) * (#{fn.rem(50)} + var(--cta-drop, 0px))
     );
     box-shadow: var(--shadow-card);
+    /* Slow, and the same figure the link folds on: the card gives back exactly
+       what the link takes away, so any difference between the two durations
+       shows up as the photograph sliding on its own. */
     transition:
-      padding t.$duration-base t.$ease-out,
-      margin-bottom t.$duration-base t.$ease-out,
-      box-shadow t.$duration-base t.$ease-out;
+      padding t.$duration-slow t.$ease-out,
+      margin-bottom t.$duration-slow t.$ease-out,
+      box-shadow t.$duration-slow t.$ease-out;
 
     @media (prefers-reduced-motion: reduce) {
       transition: none;
@@ -367,6 +392,16 @@
     margin-left: 0;
     top: fn.rem(3);
     padding-bottom: fn.rem(5);
+    /**
+     * The box the link folds into when its card joins the pile.
+     *
+     * 32 is a ceiling, not a height — the link is 29 at the widest viewport and
+     * less below it, so this clamps nothing and only gives the transition a
+     * definite number to run from. `overflow` is safe here: the rule under the
+     * label is positioned at the very bottom of this box, not outside it.
+     */
+    overflow: hidden;
+    max-height: fn.rem(32);
 
     &::after {
       content: "";
@@ -389,9 +424,25 @@
     font-weight: 700;
     line-height: 1;
   }
+  /**
+   * The settle runs on `$duration-slow`, the same as the card's padding and
+   * bottom margin: the link's 59px and the 59 the card hands back have to move
+   * together, or the photograph under them drifts for half a second. The
+   * `visibility` step waits out the whole thing instead of interpolating, so
+   * the link leaves the tab order only once it has finished folding.
+   */
   transition:
     color t.$duration-fast t.$ease-out,
-    gap t.$duration-fast t.$ease-out;
+    gap t.$duration-fast t.$ease-out,
+    max-height t.$duration-slow t.$ease-out,
+    padding-bottom t.$duration-slow t.$ease-out,
+    margin-top t.$duration-slow t.$ease-out,
+    opacity t.$duration-slow t.$ease-out,
+    visibility 0s linear t.$duration-slow;
+
+  @include mx.reduced-motion {
+    transition: none;
+  }
 
   /* The rule is `currentColor`, so it follows the label on hover on its own. */
   @include mx.hover {
@@ -469,6 +520,21 @@
          padding drops from 40 to 20 there, so the same 22px would push the photo
          2px past the card's own edge and show as a strip beside the stack. */
       margin-inline-end: calc(-1 * var(--media-offset-x, 0px) * (1 - var(--step-collapse, 0)));
+      /**
+       * On the same clock as the padding it is cancelling against.
+       *
+       * Untransitioned, this margin snapped its whole 22px the frame the card
+       * settled, while the side padding it offsets was still easing through its
+       * own 20 — so step 03's photo flicked left and then crept back right over
+       * the next half second, the only card in the stack that did it. Both run
+       * on `$duration-slow` now and the photo moves once, by the 2px that are
+       * actually left over.
+       */
+      transition: margin-inline-end t.$duration-slow t.$ease-out;
+
+      @include mx.reduced-motion {
+        transition: none;
+      }
     }
   }
 }

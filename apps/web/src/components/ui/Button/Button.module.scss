@@ -71,6 +71,13 @@
   /* 11, not 12: the row's height is set by the 22px arrow rather than the 17.6px
      text, so a 12px padding makes the button 46 against the design's 44. */
   padding: fn.rem(11) fn.rem(24);
+  /**
+   * 42, the height of the pill that has no arrow: the design's second button in
+   * a product card is 248x42 against the first one's 248x44, both with 12 of
+   * padding — the difference is the 20px icon standing in for an 18px label.
+   * Left to its own content ours came out 39.6, because its label is 17.6.
+   */
+  min-height: fn.rem(42);
   font-size: fn.rem(16);
   line-height: fn.line-height(17.6, 16);
 }

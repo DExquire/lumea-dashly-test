@@ -5,18 +5,21 @@
 /**
  * The rail's drop shadow.
  *
- * A scroller clips its children, so the cards' own `--shadow-soft` survives
- * only in the gaps between them — at the outer edges of the rail it is cut off
- * at the scroll box and the whole products column reads as a flat cut-out
- * against the page, while the design's rail floats like everything else on it.
+ * There is no shadow on the rail in the design. `products container`,
+ * `products wrap` and `products` all carry no effects at all; the only shadow
+ * in the block is the six-layer one on each `product card`, which is our
+ * `--shadow-soft`. A plate the size of the rail drawn behind it — which is what
+ * used to be here — reproduced the outer edges but also laid one continuous
+ * band under the whole row, webbing the 12px gaps between the cards together
+ * where the design leaves each card's shadow ending on its own.
  *
- * Padding the scroller and taking it back with a negative margin would give the
- * shadow its room, but the same room then shows a 28px slice of the previous
- * card whenever the rail is scrolled — the shadow and the leak want the exact
- * same strip. So the outer shadow is drawn once, by a plate the size of the
- * rail sitting behind it, and the scroller still clips flush with the column.
- * An outer `box-shadow` paints nothing inside its own box, so the plate is
- * invisible except around the rail's edges.
+ * So the cards do the work. A scroller clips both axes at its padding box, and
+ * the box sits exactly on the cards, so the room has to be made explicitly:
+ * `.track` below pads itself vertically and takes the padding straight back
+ * with a negative margin. Horizontally the same trick would show a slice of the
+ * previous card whenever the rail is scrolled, and the design clips the row at
+ * the column's right edge anyway — so only the left edge is drawn by hand, as
+ * a gradient rather than a shadow, since there is nothing to cast one.
  */
 .frame {
   position: relative;
@@ -34,27 +37,39 @@
     margin-top: 0;
   }
 
+  /**
+   * The cards' shadow on the two edges the scroll box cuts off: to the left of
+   * the first card, and above the row.
+   *
+   * One layer of the six: `-12px -8px 16px rgba(154, 173, 167, .16)`, the one
+   * that throws up and left, on a plate the size of the row. Two things make
+   * it behave, and both are needed.
+   *
+   * The plate is clipped to the strip outside its own left edge. Left to paint
+   * freely it repeated the cards' upward shadow across the whole row and laid
+   * the 16px of air under the category pill 15 levels too dark; dropping the
+   * upward half instead left the cards' own shadow cut dead at the scroll
+   * box — a 13-level step in one pixel at the row's left edge, running the
+   * height of the gap. Clipped, the plate draws only what the scroller cut
+   * away, and hands over to the cards' own shadow exactly at the seam: same
+   * layer, same box edge, same 12px corner, so the two meet without a join.
+   *
+   * The 32s are the blur's reach, so nothing is clipped that should show.
+   */
   &::before {
     content: "";
     position: absolute;
-    /* `z-index: -1` keeps the plate behind the column's own content: without it
-       the top of the shadow lands on the category pill above and reads as a
-       smudge along its lower edge. `.products` is `position: sticky`, so it is
-       a stacking context and the -1 cannot escape it. */
+    /* Behind the row: `.products` is `position: sticky` and therefore a
+       stacking context, so the -1 cannot escape the column. */
     z-index: -1;
     inset: fn.rem(2) 0;
     border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-soft);
+    box-shadow: -12px -8px 16px rgba(154, 173, 167, 0.16);
+    clip-path: inset(-32px 100% -32px -32px);
     pointer-events: none;
 
-    /**
-     * Forward, not behind, inside the products overlay. `z-index: -1` puts the
-     * plate behind everything in its stacking context, and the panel's own
-     * white background is in that context — so the rail's whole outer shadow
-     * was painted and then covered up, leaving the cards flat on the panel.
-     * The sticky filter bar above already hides the top of it, which is what
-     * the -1 was for on the desktop column.
-     */
+    /* The overlay's panel paints its own white background in this stacking
+       context, so a plate at -1 would be covered by it. */
     @include bp.until("lg") {
       z-index: 0;
     }
@@ -71,6 +86,15 @@
 
   align-items: stretch;
   height: 100%;
+  /**
+   * Room for the cards' own drop shadows above and below, handed straight back
+   * so the column's height is unchanged. Without it the scroll box clips each
+   * card's shadow flush with its own top and bottom edge and the row reads as a
+   * flat cut-out; with it every card ends on its own, gaps included, which is
+   * how the design draws them.
+   */
+  padding-block: fn.rem(40);
+  margin-block: fn.rem(-40);
   /**
    * The scroller's clip has to be the same rounded rectangle as the plate
    * behind it, or the rail draws a square corner.

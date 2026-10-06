@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useState } from "react";
-import { VariationSelector } from "@/components/product/VariationSelector/VariationSelector";
-import { Badge } from "@/components/ui/Badge/Badge";
-import { Button } from "@/components/ui/Button/Button";
-import { Price } from "@/components/ui/Price/Price";
-import { HeartIcon } from "@/components/ui/icons";
-import type { Product } from "@/types/content";
-import styles from "./ProductCard.module.scss";
+import Image from 'next/image';
+import { useState } from 'react';
+import { VariationSelector } from '@/components/product/VariationSelector/VariationSelector';
+import { Badge } from '@/components/ui/Badge/Badge';
+import { Button } from '@/components/ui/Button/Button';
+import { Price } from '@/components/ui/Price/Price';
+import { HeartIcon } from '@/components/ui/icons';
+import type { Product } from '@/types/content';
+import styles from './ProductCard.module.scss';
 
 interface ProductCardProps {
   product: Product;
@@ -18,7 +18,7 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-const DEFAULT_IMAGE_SIZES = "(min-width: 1024px) 248px, 70vw";
+const DEFAULT_IMAGE_SIZES = '(min-width: 1024px) 248px, 70vw';
 
 /**
  * The single reusable product card — same component on desktop and inside the
@@ -66,9 +66,7 @@ export function ProductCard({
           type="button"
           className={styles.favourite}
           aria-pressed={isSaved}
-          aria-label={
-            isSaved ? `Remove ${title} from saved items` : `Save ${title}`
-          }
+          aria-label={isSaved ? `Remove ${title} from saved items` : `Save ${title}`}
           onClick={() => setIsSaved((saved) => !saved)}
         >
           <HeartIcon className={styles.favouriteIcon} />
@@ -85,11 +83,7 @@ export function ProductCard({
           {variationGroups.length > 0 && (
             <div className={styles.variations}>
               {variationGroups.map((group) => (
-                <VariationSelector
-                  key={group.id}
-                  group={group}
-                  productId={product.id}
-                />
+                <VariationSelector key={group.id} group={group} productId={product.id} />
               ))}
             </div>
           )}
@@ -102,7 +96,10 @@ export function ProductCard({
             <Button variant="accent" size="sm" className={styles.action}>
               Add to bag
             </Button>
-            <Button variant="secondary" size="sm" className={styles.action}>
+            {/* No arrow on the secondary action: the design gives one to
+                "Add to bag" only — its "View details" label ends at the "s"
+                and the rest of the pill is empty. */}
+            <Button variant="secondary" size="sm" showArrow={false} className={styles.action}>
               View details
             </Button>
           </div>

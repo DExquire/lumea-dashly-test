@@ -43,8 +43,11 @@
     }
   }
   /* More categories than fit are reachable by scrolling the pill itself, so the
-     row never wraps into a second line or pushes the products down. */
+     row never wraps into a second line or pushes the products down. `none` for
+     the same reason as the rail: no rubber band past either end, and no page
+     scroll or back-gesture picked up when the row runs out. */
   overflow-x: auto;
+  overscroll-behavior-x: none;
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
@@ -58,6 +61,15 @@
        chips. The 33 this used to carry only looked right because the active
        pill was 3px too narrow and cancelled part of it out. */
     gap: fn.rem(30.3);
+    /**
+     * 8 on the closing side, not 4: `menu` is 588 wide in the frame and ours
+     * came to 584. The frame's own row is 4 + 149 + 24 + 160 + 24 + 223 + 4,
+     * and its "Face Wash" is typed with a leading space — 4.3px of it — which
+     * is what our labels are short of. Spending it here puts the pill's rounded
+     * end where the design draws it and leaves 37 after the last label against
+     * the frame's 36, rather than moving every label to chase the same 4px.
+     */
+    padding-right: fn.rem(8);
   }
 }
 

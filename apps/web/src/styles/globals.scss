@@ -20,13 +20,27 @@
   /* The darker hairline the mobile frame draws around its step chips. */
   --color-hairline-strong: #d9e1e2;
   /**
-   * The step card's 1px stroke, read off the Figma node rather than the export:
-   * a vertical gradient from #f3f5f5 to #f5fcfd — all but invisible against the
-   * card's own #f3f5f5 fill. What draws the card's edge is the shadow, not the
-   * stroke, which is why measuring the export gave a stroke four times too dark.
+   * The step card's 1px stroke. The mobile frame's card carries the pale
+   * vertical gradient below — #f3f5f5 to #f5fcfd, all but invisible against the
+   * card's own fill. The desktop one does not: its node has a radial gradient
+   * from #32664b to #63cc96 at 40% opacity, which the export draws as a green
+   * hairline down the card's right edge and across its top. An earlier pass
+   * read the mobile stroke, called it the card's, and took the ring off the
+   * desktop card with it.
    */
   --card-ring-from: #f3f5f5;
   --card-ring-to: #f5fcfd;
+  /**
+   * Fitted to the export rather than taken from the node's own numbers: the
+   * stroke is a radial gradient at 40% opacity whose handles Figma does not
+   * render the way a CSS `radial-gradient` with the same ellipse does — reading
+   * them literally put a bright line all the way round, where the export has a
+   * clear hairline down the right edge, a fainter one over the top and next to
+   * nothing on the left. This is that line at its strong end, measured where
+   * the export draws it best — the right edge, (194,218,210) over the card's
+   * own #f3f5f5 — and the card wears it evenly all the way round.
+   */
+  --card-ring-rim: rgba(120, 178, 158, 0.4);
   --color-surface: #ffffff;
   --color-surface-muted: #f3f5f5;
   --color-surface-hero: #fdfdfd;
@@ -66,7 +80,8 @@
    * The step cards on the mobile frame carry one layer the desktop ones do not:
    * an upward `0 -12 12` at 20%. It is what darkens the top edge of every card
    * in the pile — measured off the export that band reads 215, which a stroke
-   * of 244 cannot produce.
+   * of 244 cannot produce. The desktop frame has no such band: on its stacked
+   * export the page right above a card is a clean 255.
    */
   --shadow-step-card-mobile:
     1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),

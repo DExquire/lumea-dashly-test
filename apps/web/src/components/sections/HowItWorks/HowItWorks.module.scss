@@ -132,11 +132,34 @@
 .stack {
   display: flex;
   flex-direction: column;
+
+  /**
+   * How long a card has the screen to itself. **This is the knob for the
+   * stacking rhythm; `0` restores the design's spacing exactly.**
+   *
+   * The gap between two cards is also the only dwell the stack has. A parked
+   * card is covered by the next one from the moment that card's top reaches its
+   * bottom edge, and in the flow those two edges are exactly one gap apart — so
+   * at the design's 26 the next card starts climbing over card 01 twenty-six
+   * pixels of scroll after it arrives, and no delay before the fold can change
+   * that: the fold is a reaction, the covering is the layout. Buying the reader
+   * a card at a time means buying scroll distance here and nowhere else.
+   *
+   * 180 is read off the geometry rather than picked: card 01 parks at 160 and is
+   * 544 tall, so it clears a 900px window by 196 — the dwell only has to outlast
+   * the eye, and 26 + 180 = 206px of wheel is about a second of unhurried
+   * scrolling with the card whole, alone and still.
+   *
+   * Desktop only. On mobile the cards are read one per screen anyway and the
+   * design's 26 is what shows between them.
+   */
+  --stack-dwell: 0px;
+
   /* 26 between cards, measured on the design's export: its card 01 ends at
      y1848 and card 02 begins at 1874, and the same 26 separates 02 from 03.
      At 10 the whole column ran short by 16px per card and every card below the
      first sat that much higher than the design. */
-  gap: fn.rem(26);
+  gap: calc(#{fn.rem(26)} + var(--stack-dwell));
   /* No overflow on the stack or its ancestors — it would break `sticky`. */
 
   /**
@@ -173,9 +196,16 @@
        products column gives the row, so the pile stays assembled until the
        section itself scrolls away instead of collapsing halfway through it. */
     flex: 1 0 var(--stack-peek-total);
+    /* The dwell is room between cards, not after the last one. Without this the
+       gap before the reserve would push the bottom of the container down with
+       it and the assembled pile would leave the screen that much later than the
+       column it is measured against. */
+    margin-top: calc(-1 * var(--stack-dwell));
   }
 
   @include bp.from("lg") {
+    --stack-dwell: #{fn.rem(180)};
+
     align-self: stretch;
   }
 }
@@ -241,8 +271,28 @@
          same way it does the 50 of padding, so nothing below moves. */
       --cta-drop: #{fn.rem(59)};
 
+      /**
+       * Closed, not removed: `display: none` took 59px out of the card in one
+       * frame and the photograph under it jumped. The link folds instead — its
+       * own 29px of height to nothing, and a negative top margin eating the 30
+       * the body keeps above it — so the same 59 leave over the same transition
+       * the card's padding and bottom margin are already running, and the two
+       * cancel each other frame by frame.
+       *
+       * `visibility` is held until the end by its own delay in `.cta`, which is
+       * what takes the folded link out of the tab order without cutting the
+       * fade short.
+       */
       [data-step-cta] {
-        display: none;
+        max-height: 0;
+        /* A border box cannot be shorter than its own padding, so the 5 under
+           the label has to go with the rest or the link folds to 5px instead
+           of nothing and the card keeps those 5 for ever. */
+        padding-bottom: 0;
+        margin-top: calc(-1 * #{fn.rem(30)});
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
       }
     }
   }
@@ -283,6 +333,10 @@
 
   position: sticky;
   top: calc(var(--stack-top) + var(--peek-before));
+
+  /* No scroll snapping here on purpose: pulling the page onto a card when the
+     scroll ended near one reads as the cards tugging at the wheel. The stack
+     stays where the reader leaves it. */
 }
 
 .products {

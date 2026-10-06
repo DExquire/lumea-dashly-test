@@ -141,7 +141,7 @@ export const routineSteps: RoutineStep[] = [
     // This photo reaches up beside the CTA rather than starting under it, and
     // it is the card's text that is drawn over it — see `.head, .body` in the
     // stylesheet — so the link's rule stays whole across the overlap.
-    mediaGap: 0,
+    mediaGap: 2,
     mediaOffsetX: 22,
     descriptionWidth: 300,
     paddingTop: 40,
