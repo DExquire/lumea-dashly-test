@@ -16,6 +16,21 @@
      product cards, with the last row of buttons cut by the window edge. */
   padding-bottom: mx.fluid(32, 53);
   background-color: var(--color-surface);
+
+  /**
+   * Nothing in this section may be used as a scroll anchor.
+   *
+   * The last card is the only one that really gets shorter when it folds — it
+   * has nothing below it to hand the room back to — so the page loses about
+   * 110px at that moment. The browser's scroll anchoring treats that as content
+   * moving under the reader and corrects it by shifting the scroll ~18px, and
+   * 18 is more than the 14 a card is allowed to climb before it counts as
+   * released: the card unfolded, the page grew back, the scroll shifted back,
+   * and the card folded again — forever, at that one scroll position. Anchoring
+   * is a courtesy for content that loads in late; here it is the input to its
+   * own output, and the stack is better off without it.
+   */
+  overflow-anchor: none;
 }
 
 .inner {

@@ -56,7 +56,7 @@ export const routineSteps: RoutineStep[] = [
   {
     id: "treat",
     /* How far this card rests below the one above it in the pile. */
-    peek: 90,
+    peek: 105,
     mobile: {
       peek: 130,
       titleSize: 36,

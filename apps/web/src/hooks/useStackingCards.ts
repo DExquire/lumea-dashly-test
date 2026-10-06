@@ -213,6 +213,15 @@ export function useStackingCards(): UseStackingCardsResult {
      * slack is zero, so the pile comes to rest with the bottom card flush to the
      * bottom of the column instead of floating above it, and the two columns of
      * the section end on the same line.
+     *
+     * Live heights, not the full ones kept in `expandedRef`, and deliberately:
+     * the last card is the only one whose box really shrinks when it folds — the
+     * others hand the room they lose straight back as bottom margin — so its own
+     * 110px has to be in this subtraction or the pile comes apart on the way out
+     * (tried it: a covered tagline sliced by 3px, and the stack released a card
+     * at a time). It does mean every bottom margin in the column moves while
+     * that last card folds. That is safe as long as the page does not scroll
+     * itself in response — see `overflow-anchor` on the section.
      */
     const last = heights[heights.length - 1] ?? 0;
 
@@ -333,7 +342,16 @@ export function useStackingCards(): UseStackingCardsResult {
    * is also the only thing allowed to throw away the heights kept above.
    */
   const remeasure = useCallback(() => {
-    expandedRef.current = [];
+    /* Only the cards that are out of the pile, because only they can be read
+       again straight away. A folded card would answer with its folded box and
+       hand the column a slack 110px out, which is the shiver this cache exists
+       to prevent; it keeps the figure it had until it is released. */
+    cardsRef.current.forEach((_, index) => {
+      if (stackedRef.current[index] !== true) {
+        delete expandedRef.current[index];
+      }
+    });
+
     scheduleMeasure();
   }, [scheduleMeasure]);
 
@@ -345,7 +363,30 @@ export function useStackingCards(): UseStackingCardsResult {
     window.addEventListener('scroll', scheduleMeasure, { passive: true });
     window.addEventListener('resize', remeasure);
 
+    /**
+     * And on the cards' own heights, because one of them changes without the
+     * page scrolling.
+     *
+     * `--card-slack` is a difference between the last card's height and each
+     * other card's, and the last card is the one that really shrinks when it
+     * folds — over half a second of transition, during which no scroll event
+     * need fire at all. Measured only on scroll, the slack then described a
+     * layout that no longer existed: the margins still carried the last card's
+     * full height while the card itself was 110px shorter, so the cards stopped
+     * reaching the bottom of their container together and the pile came apart a
+     * card at a time. Watching the boxes keeps the two in step without polling.
+     */
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleMeasure);
+
+    cardsRef.current.forEach((card) => {
+      if (card) {
+        observer?.observe(card);
+      }
+    });
+
     return () => {
+      observer?.disconnect();
       window.removeEventListener('scroll', scheduleMeasure);
       window.removeEventListener('resize', remeasure);
 
