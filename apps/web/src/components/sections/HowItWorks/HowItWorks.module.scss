@@ -42,6 +42,20 @@
   max-width: var(--container-outer);
   margin-inline: auto;
   padding-inline: var(--gutter);
+
+  /**
+   * The section ends at its own edges, whatever the products rail says.
+   *
+   * The rail is an `overflow-x: auto` scroller, so the cards past its right
+   * edge are hidden — but they were still counted as overflow by everything
+   * above it, and the page came out 316px wider than the window with a
+   * horizontal scrollbar to match: the whole layout could be dragged sideways
+   * into an empty strip. The clip belongs here and not on the rail itself: the
+   * rail's own shadow plate paints 28px to the *left* of it on purpose, and
+   * clipping any closer cut that shadow dead in a straight vertical line. At
+   * this level the nearest ink is the step cards' shadow, 50px inside the box.
+   */
+  overflow-x: clip;
 }
 
 /**

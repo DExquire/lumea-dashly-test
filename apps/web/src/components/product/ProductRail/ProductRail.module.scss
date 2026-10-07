@@ -30,19 +30,6 @@
      measured with. */
   padding-block: fn.rem(2);
 
-  /**
-   * And the row ends here, whatever the scroll box says.
-   *
-   * The track is an `overflow-x: auto` scroller, so the cards past its right
-   * edge are hidden — but they were still counted as overflow by everything
-   * above it, and the page itself ended up 316px wider than the window with a
-   * horizontal scrollbar to match: the whole layout could be dragged sideways
-   * into an empty strip. Clipping here stops the count at the row. The margin
-   * is for the plate below, which paints 28px to the *left* of this box on
-   * purpose and must not be cut with it.
-   */
-  overflow-x: clip;
-  overflow-clip-margin: fn.rem(32);
 
   /* The 3 is a desktop measurement (15 between the category pill and the first
      card there); the overlay sets its own distance — see `.content` in
