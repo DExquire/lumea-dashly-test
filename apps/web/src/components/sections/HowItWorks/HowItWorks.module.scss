@@ -219,7 +219,7 @@
   }
 
   @include bp.from("lg") {
-    --stack-dwell: #{fn.rem(180)};
+    --stack-dwell: 0px;
 
     align-self: stretch;
   }

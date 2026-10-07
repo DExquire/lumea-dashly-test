@@ -149,7 +149,27 @@
        two Figma frames, so the gutter interpolates from the tablet value at
        1024 up to the design value at 1440 and the whole block breathes. */
     --gutter: #{mx.fluid(t.$gutter-tablet, t.$gutter-desktop, 1024, 1440)};
-    --stack-top: #{t.$stack-top-desktop};
+
+    /**
+     * Where the pile parks — and the one number that decides whether a card can
+     * be read whole before it folds.
+     *
+     * A card must not start tightening while part of it is still below the fold,
+     * and once it is parked no amount of scrolling can reveal more of it. So the
+     * question is pure arithmetic: the bottom card sits under three 105px steps
+     * (those are the design's, and they cannot shrink — a covered card has to
+     * show its number, title and tagline inside one) and is 483px tall, so it
+     * needs `top + 315 + 483 + a little air` to fit in the window. At the
+     * design's flat 160 that wants a 982px window; a 13" laptop gives the
+     * browser about 860, and the last two cards were folding with their
+     * photographs hanging past the edge.
+     *
+     * Interpolating instead of choosing: 160 wherever the window can afford it,
+     * and down to the gutter's own 24 on a short one, always leaving the bottom
+     * card 24px of air. Below ~846px of window even that is not enough; nothing
+     * short of dropping the stack would be.
+     */
+    --stack-top: clamp(8px, calc(100vh - 875px), #{t.$stack-top-desktop});
     --stack-peek: #{t.$stack-peek-desktop};
   }
 }
