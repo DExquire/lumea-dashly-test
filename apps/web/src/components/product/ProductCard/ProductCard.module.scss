@@ -20,6 +20,21 @@
      a longer title or an extra variation group never changes the card size. */
   width: fn.rem(264);
   height: 100%;
+
+  /**
+   * And the rail keeps a constant height across the category tabs.
+   *
+   * Stretching to the tallest card only equalises the cards that are on screen
+   * together. Each tab shows a different set, and a set that happens to contain
+   * a product with two variation groups — "Skin type" and "Size" on the
+   * moisturiser — comes out 24px taller than one without. Switching tabs then
+   * moved the whole row, and with it the bottom of the section and the column of
+   * step cards beside it. Reserving the design height — the card is 264x632 in the mockup — costs a
+   * little air under the shorter cards and holds everything else still.
+   */
+  @include bp.from("lg") {
+    min-height: fn.rem(632);
+  }
   padding: fn.rem(8);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);

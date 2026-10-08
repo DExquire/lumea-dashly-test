@@ -10,9 +10,26 @@ cards plus a CMS-driven product block (inline on desktop, overlay on mobile).
 
 | | |
 | --- | --- |
-| Live site | _added after deploy_ |
-| Strapi admin | _added after deploy_ |
-| Repository | _added after deploy_ |
+| Live site | https://lumea-dashly-test.vercel.app |
+| Strapi admin | https://lumea-cms-ugie.onrender.com/admin |
+| Repository | https://github.com/DExquire/lumea-dashly-test |
+
+**Test access to the admin panel.** An account created for this review — not a
+personal one — with the Editor role, which can add and edit products, categories,
+variations and announcement messages:
+
+| | |
+| --- | --- |
+| Email | `reviewer@lumea.test` |
+| Password | `DashlyReview26` |
+
+Anything changed there shows up on the site within a minute: the page is
+statically rendered and revalidated every 60 seconds (`NEXT_PUBLIC_REVALIDATE_SECONDS`).
+
+The backend is on Render's free tier and spins down after a spell of inactivity,
+so the first request after that waits about a minute while it wakes. The site
+itself stays up meanwhile — its pages come from the ISR cache — only the admin
+panel and the first content refresh have to wait.
 
 ---
 
@@ -305,13 +322,30 @@ preview can never drift from the real page.
 
 **Backend (Render).** `render.yaml` is a blueprint: connecting the repository
 creates the web service and a PostgreSQL instance, wires `DATABASE_URL` and
-generates all Strapi secrets. Set `CORS_ORIGINS` to the deployed frontend origin.
+generates all Strapi secrets. Set `CORS_ORIGINS` to the deployed frontend origin
+(comma separated if there is more than one).
 
 Free instances have an ephemeral filesystem, so images uploaded through the admin
-panel would disappear on restart. Setting `CLOUDINARY_NAME`, `CLOUDINARY_KEY` and
-`CLOUDINARY_SECRET` switches the upload provider to Cloudinary; without them the
-local filesystem is used, which is fine for development.
+panel disappear on restart while the rows that point at them survive — broken
+pictures, not missing products. Setting `CLOUDINARY_NAME`, `CLOUDINARY_KEY` and
+`CLOUDINARY_SECRET` switches the upload provider to Cloudinary, which is what the
+deployment above uses; without them the local filesystem is used, which is fine
+for development.
+
+The seed only fills an empty database, so a deployment that already has content
+keeps it. `SEED_FORCE=true` re-creates the demo content on the next start — the
+way to move existing images to a new upload provider. Take the variable off again
+afterwards, or every restart will wipe whatever was edited in the admin panel.
 
 **Frontend (Vercel).** Import the repository with **Root Directory** set to
-`apps/web`, then set `NEXT_PUBLIC_STRAPI_URL` to the Strapi URL and
-`NEXT_PUBLIC_SITE_URL` to the site's own URL.
+`apps/web`, then set:
+
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_STRAPI_URL` | the Strapi URL |
+| `NEXT_PUBLIC_SITE_URL` | the site's own URL |
+| `NEXT_PUBLIC_MEDIA_ORIGINS` | `https://res.cloudinary.com` when Cloudinary is in use |
+
+All three are read at build time, so they need a redeploy to take effect, and
+`NEXT_PUBLIC_MEDIA_ORIGINS` is what allows `next/image` to optimise images from a
+host other than the Strapi one.
