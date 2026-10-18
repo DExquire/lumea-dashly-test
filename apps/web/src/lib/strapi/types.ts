@@ -45,6 +45,8 @@ export interface StrapiBadgeComponent {
 export interface StrapiVariationValueComponent {
   id: number;
   label: string | null;
+  /** Decimal fields arrive as strings over the REST API. */
+  discountPercent?: number | string | null;
   discountLabel?: string | null;
 }
 

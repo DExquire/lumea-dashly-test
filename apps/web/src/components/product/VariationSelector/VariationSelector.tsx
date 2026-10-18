@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { VariationGroup } from '@/types/content';
 import styles from './VariationSelector.module.scss';
 
@@ -8,6 +7,10 @@ interface VariationSelectorProps {
   group: VariationGroup;
   /** Scopes the radio group to one product card. */
   productId: string;
+  /** Id of the chosen option. */
+  selectedId: string | undefined;
+  /** Called with the chosen option's id. */
+  onSelect: (optionId: string) => void;
 }
 
 /**
@@ -16,9 +19,17 @@ interface VariationSelectorProps {
  * Built on real radio inputs: the browser then provides the group semantics and
  * arrow-key navigation for free, while the visible chip is a `<label>` — no
  * click handlers on non-interactive elements.
+ *
+ * The choice itself is held by the card rather than here: picking a value can
+ * change the product's price, so the card is the only place that can see every
+ * group at once.
  */
-export function VariationSelector({ group, productId }: VariationSelectorProps) {
-  const [selectedId, setSelectedId] = useState(group.options[0]?.id);
+export function VariationSelector({
+  group,
+  productId,
+  selectedId,
+  onSelect,
+}: VariationSelectorProps) {
   const groupName = `variation-${productId}-${group.id}`;
 
   return (
@@ -39,7 +50,7 @@ export function VariationSelector({ group, productId }: VariationSelectorProps) 
               name={groupName}
               value={option.id}
               checked={selectedId === option.id}
-              onChange={() => setSelectedId(option.id)}
+              onChange={() => onSelect(option.id)}
             />
             <span className={styles.chip}>
               {option.label}

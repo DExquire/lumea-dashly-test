@@ -16,26 +16,50 @@
   font-weight: 700;
   text-align: center;
   isolation: isolate;
-  transition: color t.$duration-base t.$ease-out;
+  transition: color t.$duration-hover t.$ease-figma-in-out;
 
   @include mx.focus-ring(3px);
 }
 
 /**
- * Hover animation from the Figma prototype: concentric colour rings sit just
- * below the pill and rise into it. Transforming a pseudo-element keeps the
- * animation on the compositor — no layout work, no repaint of the label.
+ * The hover animation, measured off the prototype rather than eyeballed.
+ *
+ * `vibrant grad` inside the button component is not a radial gradient at all:
+ * it is four concentric circles, and in the Default variant they sit entirely
+ * below the pill with the outermost one tangent to its bottom edge. On the
+ * 365x84 hero button their diameters are 256.88 / 203.834 / 155.833 / 110.879,
+ * which is 70.378% of the button's width for the outer circle and 79.35% /
+ * 60.664% / 43.164% of that for the three inside it. Those are the stops below,
+ * and the four fills are our own green ramp — the design uses #e5f7ed, #d1f0e0,
+ * #92dbb6 and #63cc96, which are exactly `--color-green-50` … `--color-green`.
+ *
+ * Hover switches the component to its `state=Hover` variant through a
+ * SMART_ANIMATE of 0.4s on Figma's EASE_IN_AND_OUT. In that variant the stack
+ * has grown until the innermost circle covers the pill, so the button settles
+ * as a flat green with a white label — not as a half-risen set of rings, which
+ * is what this used to do. Frame-by-frame the pale outer ring floods the pill
+ * first and the darker rings sweep up through it.
+ *
+ * Transforming a pseudo-element keeps all of it on the compositor — no layout
+ * work, no repaint of the label.
  */
 .wave {
   position: absolute;
   bottom: 0;
   left: 50%;
   z-index: -1;
-  width: 132%;
+  width: 70.378%;
   aspect-ratio: 1;
   border-radius: 50%;
-  transform: translate(-50%, 100%);
-  transition: transform t.$duration-slow t.$ease-out;
+  background: radial-gradient(
+    circle closest-side at 50% 50%,
+    var(--color-green) 0 43.164%,
+    var(--color-green-300) 43.164% 60.664%,
+    var(--color-green-100) 60.664% 79.35%,
+    var(--color-green-50) 79.35% 100%
+  );
+  transform: translate(-50%, 100%) scale(1);
+  transition: transform t.$duration-hover t.$ease-figma-in-out;
 }
 
 .label,
@@ -50,13 +74,22 @@
   height: fn.rem(22);
 }
 
+/**
+ * `scale(4)` is what it takes for the innermost disc — 0.43164 of the outer
+ * radius — to clear the half-diagonal of every button size we draw, down to the
+ * 152x46 one in the mobile card; anything smaller leaves a ring showing at a
+ * corner. The 34% is the shift that puts the circle's centre on the button's:
+ * exactly it runs from 31.4% on the 206x54 pill to 38% on the 248x42 one, and
+ * at this scale that 7px spread is far inside the overflow.
+ *
+ * `:active` lands on the same state rather than inventing a pressed one — the
+ * component set has only Default and Hover — and it is what gives the mobile
+ * cards' buttons a response to a tap, where there is no hover at all.
+ */
 .root:hover .wave,
-.root:focus-visible .wave {
-  transform: translate(-50%, 34%);
-}
-
+.root:focus-visible .wave,
 .root:active .wave {
-  transform: translate(-50%, 24%);
+  transform: translate(-50%, 34%) scale(4);
 }
 
 @include mx.reduced-motion {
@@ -111,37 +144,34 @@
   }
 }
 
+/* The dark pill takes the ring stack as `.wave` defines it. Its label is not
+   re-coloured on hover: the Hover variant keeps it white, over the green. The
+   rule that turned it dark here is what made our version read as "rings with
+   black text" instead of the design's green button. */
 .primary {
   background-color: var(--color-ink);
   color: var(--color-surface);
-
-  .wave {
-    background: radial-gradient(
-      circle at 50% 50%,
-      var(--color-green) 0 22%,
-      var(--color-green-300) 22% 31%,
-      var(--color-green-100) 31% 41%,
-      var(--color-green-50) 41% 100%
-    );
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: var(--color-ink);
-  }
 }
 
+/**
+ * The light pill settles on a pale mint, not on the saturated green — its own
+ * `state=Hover` variant, which the prototype shows but the REST API cannot
+ * reach, because the whole button set lives in a remote library. So the ramp is
+ * reversed here: same circles, same radii, same four colours, read from the
+ * outside in, which ends the animation on `--color-green-50` and leaves the
+ * label dark.
+ */
 .secondary {
   background-color: var(--color-surface-muted);
   color: var(--color-ink);
 
   .wave {
     background: radial-gradient(
-      circle at 50% 50%,
-      var(--color-green) 0 22%,
-      var(--color-green-300) 22% 31%,
-      var(--color-green-100) 31% 41%,
-      var(--color-green-50) 41% 100%
+      circle closest-side at 50% 50%,
+      var(--color-green-50) 0 43.164%,
+      var(--color-green-100) 43.164% 60.664%,
+      var(--color-green-300) 60.664% 79.35%,
+      var(--color-green) 79.35% 100%
     );
   }
 }
@@ -153,11 +183,11 @@
 
   .wave {
     background: radial-gradient(
-      circle at 50% 50%,
-      var(--color-ink) 0 24%,
-      rgba(33, 39, 33, 0.82) 24% 34%,
-      rgba(50, 102, 75, 0.7) 34% 46%,
-      rgba(50, 102, 75, 0.35) 46% 100%
+      circle closest-side at 50% 50%,
+      var(--color-ink) 0 43.164%,
+      rgba(33, 39, 33, 0.82) 43.164% 60.664%,
+      rgba(50, 102, 75, 0.7) 60.664% 79.35%,
+      rgba(50, 102, 75, 0.35) 79.35% 100%
     );
   }
 

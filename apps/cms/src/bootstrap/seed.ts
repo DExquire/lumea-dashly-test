@@ -72,6 +72,9 @@ function buildProductData(
           ? { label: value }
           : {
               label: value.label,
+              ...(value.discountPercent !== undefined
+                ? { discountPercent: value.discountPercent }
+                : {}),
               ...(value.discountLabel ? { discountLabel: value.discountLabel } : {}),
             },
       ),

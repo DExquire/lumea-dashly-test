@@ -22,6 +22,9 @@ export interface SeedCategory {
 
 export interface SeedVariationValue {
   label: string;
+  /** Discount this value carries, in percent. Drives the price. */
+  discountPercent?: number;
+  /** Overrides the badge text; derived from `discountPercent` when omitted. */
   discountLabel?: string;
 }
 
@@ -88,8 +91,10 @@ export const seedProducts: SeedProduct[] = [
         name: 'Size',
         values: [
           '30 ml',
-          { label: '50 ml', discountLabel: '-10 %' },
-          { label: '100 ml', discountLabel: '-20%' },
+          // The label is kept alongside the number because the design spells the
+          // two badges differently — "-10 %" with a space, "-20%" without.
+          { label: '50 ml', discountPercent: 10, discountLabel: '-10 %' },
+          { label: '100 ml', discountPercent: 20, discountLabel: '-20%' },
         ],
       },
     ],

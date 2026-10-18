@@ -63,6 +63,24 @@ function mapBadges(badges: StrapiBadgeComponent[] | null | undefined): ProductBa
   });
 }
 
+/**
+ * A decimal field arrives as a string over the REST API, and a value outside
+ * 0..100 is an editing slip rather than a discount — treat it as none.
+ */
+function percent(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0 || parsed >= 100) {
+    return null;
+  }
+
+  return Math.round(parsed);
+}
+
 function mapVariationGroups(
   groups: StrapiVariationGroupComponent[] | null | undefined,
 ): VariationGroup[] {
@@ -73,7 +91,29 @@ function mapVariationGroups(
     const options = (group.values ?? []).flatMap((value) => {
       const label = trimmed(value.label);
 
-      return label ? [{ id: String(value.id), label, discount: trimmed(value.discountLabel) }] : [];
+      if (!label) {
+        return [];
+      }
+
+      const discountPercent = percent(value.discountPercent);
+
+      return [
+        {
+          id: String(value.id),
+          label,
+          discountPercent,
+          /**
+           * The badge text. An editor who typed one wins — the design spells
+           * its two badges differently, "-10 %" with a space and "-20%"
+           * without, and that is not something a formatter should flatten.
+           * Left empty, it is derived from the number, so nobody has to type
+           * the same discount twice.
+           */
+          discount:
+            trimmed(value.discountLabel) ??
+            (discountPercent !== null ? `-${discountPercent}%` : null),
+        },
+      ];
     });
 
     // A group without a name or without options would render as an empty row.

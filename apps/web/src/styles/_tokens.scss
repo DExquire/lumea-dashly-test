@@ -24,5 +24,11 @@ $stack-top-desktop: 160px;
 $duration-fast: 180ms;
 $duration-base: 280ms;
 $duration-slow: 520ms;
+/* Figma's own transition length for the button hover variants (0.4s). */
+$duration-hover: 400ms;
 $ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
 $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+/* Figma's EASE_IN_AND_OUT and EASE_OUT, verbatim, for motion copied straight
+   out of the prototype rather than re-tuned by hand. */
+$ease-figma-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+$ease-figma-out: cubic-bezier(0, 0, 0.58, 1);

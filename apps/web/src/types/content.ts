@@ -23,6 +23,17 @@ export interface VariationOption {
   id: string;
   label: string;
   /**
+   * Discount this value carries, in percent, or `null` when it has none.
+   *
+   * It replaces the product's own discount rather than stacking on top of it,
+   * so the number on the chip is always the number the price row shows. The
+   * design gives no rule for this — neither the brief nor the prototype say
+   * what picking a size does — and this is the reading that keeps the card
+   * self-consistent. Swapping to a compounding rule is one line in
+   * `lib/pricing.ts`.
+   */
+  discountPercent: number | null;
+  /**
    * The small tilted badge the design pins to the top edge of a chip — "-10 %"
    * on 50 ml, "-20%" on 100 ml. Free text rather than a number: the design
    * spells the two differently, and an editor may want "2 for 1" there.

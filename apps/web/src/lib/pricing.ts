@@ -71,3 +71,51 @@ export function resolvePricing(input: PricingInput): Pricing {
     discountPercent: null,
   };
 }
+
+/**
+ * The price once the shopper has picked their variations.
+ *
+ * A variation value can carry its own discount, and when it does it **replaces**
+ * the product's rather than stacking on top of it. Neither the brief nor the
+ * Figma prototype says which it should be — the prototype carries no interaction
+ * on the chips at all — so the deciding argument is that the card has to agree
+ * with itself: the chip reads "-10 %" and, with replacement, so does the price
+ * row. Stacking would put "-10 %" on the chip and "-24%" under it, which reads
+ * as a bug even though the arithmetic is honest. To stack instead, the single
+ * line to change is `percent` below:
+ *
+ *   const percent = 100 - (1 - (pricing.discountPercent ?? 0) / 100) * (1 - own / 100) * 100;
+ *
+ * Taking the product's resolved pricing rather than the raw CMS fields keeps the
+ * untouched case bit-for-bit identical: with nothing discounted the very same
+ * object comes back, so no rounding can drift.
+ *
+ * With several groups discounted at once the largest wins, so the order the
+ * groups happen to be in cannot change the price.
+ */
+export function resolveVariationPricing(
+  pricing: Pricing,
+  selectedDiscountPercents: readonly (number | null)[],
+): Pricing {
+  const own = selectedDiscountPercents.reduce<number | null>((best, value) => {
+    if (value === null || value <= 0 || value >= 100) {
+      return best;
+    }
+
+    return best === null || value > best ? value : best;
+  }, null);
+
+  if (own === null) {
+    return pricing;
+  }
+
+  /* The list price: what the product costs before any discount at all. */
+  const list = pricing.original ?? pricing.current;
+  const percent = own;
+
+  return {
+    current: roundMoney(list * (1 - percent / 100)),
+    original: list,
+    discountPercent: Math.round(percent),
+  };
+}

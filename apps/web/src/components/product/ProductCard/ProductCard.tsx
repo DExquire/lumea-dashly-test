@@ -1,13 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { VariationSelector } from '@/components/product/VariationSelector/VariationSelector';
 import { Badge } from '@/components/ui/Badge/Badge';
 import { Button } from '@/components/ui/Button/Button';
 import { Price } from '@/components/ui/Price/Price';
 import { HeartIcon } from '@/components/ui/icons';
-import type { Product } from '@/types/content';
+import { resolveVariationPricing } from '@/lib/pricing';
+import type { Product, VariationGroup } from '@/types/content';
 import styles from './ProductCard.module.scss';
 
 interface ProductCardProps {
@@ -19,6 +20,21 @@ interface ProductCardProps {
 }
 
 const DEFAULT_IMAGE_SIZES = '(min-width: 1024px) 248px, 70vw';
+
+/** Every group starts on its first value, which is how the design draws them. */
+function initialSelection(groups: VariationGroup[]): Record<string, string> {
+  const selection: Record<string, string> = {};
+
+  for (const group of groups) {
+    const first = group.options[0];
+
+    if (first) {
+      selection[group.id] = first.id;
+    }
+  }
+
+  return selection;
+}
 
 /**
  * The single reusable product card — same component on desktop and inside the
@@ -35,6 +51,26 @@ export function ProductCard({
 }: ProductCardProps) {
   const { title, image, volume, pricing, badges, variationGroups } = product;
   const [isSaved, setIsSaved] = useState(false);
+  const [selection, setSelection] = useState(() => initialSelection(variationGroups));
+
+  /**
+   * The price follows the chosen values: a value may carry its own discount,
+   * and `resolveVariationPricing` applies it in place of the product's. With
+   * nothing discounted it hands back the very same object, so a product without
+   * variation discounts renders exactly as before.
+   */
+  const selectedPricing = useMemo(
+    () =>
+      resolveVariationPricing(
+        pricing,
+        variationGroups.map(
+          (group) =>
+            group.options.find((option) => option.id === selection[group.id])
+              ?.discountPercent ?? null,
+        ),
+      ),
+    [pricing, variationGroups, selection],
+  );
 
   return (
     <article className={styles.root}>
@@ -83,14 +119,22 @@ export function ProductCard({
           {variationGroups.length > 0 && (
             <div className={styles.variations}>
               {variationGroups.map((group) => (
-                <VariationSelector key={group.id} group={group} productId={product.id} />
+                <VariationSelector
+                  key={group.id}
+                  group={group}
+                  productId={product.id}
+                  selectedId={selection[group.id]}
+                  onSelect={(optionId) =>
+                    setSelection((current) => ({ ...current, [group.id]: optionId }))
+                  }
+                />
               ))}
             </div>
           )}
         </div>
 
         <div className={styles.bottom}>
-          <Price pricing={pricing} />
+          <Price pricing={selectedPricing} />
 
           <div className={styles.actions}>
             <Button variant="accent" size="sm" className={styles.action}>

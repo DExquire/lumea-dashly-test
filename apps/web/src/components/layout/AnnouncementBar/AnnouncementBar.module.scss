@@ -10,7 +10,7 @@
   /* The mobile frame keeps the bar 354px wide inside a 375px screen. */
   padding-inline: fn.rem(10.5);
 
-  @include bp.from("lg") {
+  @include bp.from("md") {
     padding-inline: 0;
   }
 }
@@ -36,7 +36,19 @@
   color: var(--color-surface);
   text-align: center;
 
-  @include bp.from("lg") {
+  /**
+   * From 768 rather than from 1024.
+   *
+   * The design has two frames, 375 and 1440, and nothing between them. The bar
+   * is 354 of 375 on the mobile one — full width less a 10.5 gutter — and a
+   * fixed 458 plate on the desktop one. Keeping the mobile rule all the way to
+   * 1024 meant a tablet got the first shape at a width it was never drawn for:
+   * at 768 that is a 747px black band carrying 274px of text, and at 820 a 799
+   * one. It is centred to the pixel, which is why it reads as "wrong size"
+   * rather than "off centre". The plate is the shape that survives being made
+   * wider, so it takes over as soon as the layout stops being a phone.
+   */
+  @include bp.from("md") {
     /**
      * Straight off the Figma node (`Announcement Bar`): a fixed 458x44 box with
      * 20px side padding and the message centred in it — not a pill that hugs its
@@ -75,7 +87,8 @@
   pointer-events: none;
   visibility: hidden;
 
-  @include bp.from("lg") {
+  /* Bold is part of the desktop plate, so it arrives with it. */
+  @include bp.from("md") {
     font-weight: 700;
   }
 
