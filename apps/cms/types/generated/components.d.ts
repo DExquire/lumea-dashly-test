@@ -39,7 +39,7 @@ export interface ProductVariationGroup extends Struct.ComponentSchema {
 export interface ProductVariationValue extends Struct.ComponentSchema {
   collectionName: 'components_product_variation_values';
   info: {
-    description: 'One selectable value inside a variation group, e.g. "30 ml" or "Hyaluronic Acid 2%". `discountLabel` is the optional tilted badge the design pins to the top edge of the chip ("-10 %").';
+    description: 'One selectable value inside a variation group, e.g. "30 ml" or "Hyaluronic Acid 2%". `discountPercent` is the discount this particular value carries and is what the price is recalculated from; it replaces the product\'s own discount rather than stacking on top of it, so the badge on the chip and the badge in the price row always show the same number. `discountLabel` is only the text drawn on the chip \u2014 leave it empty and it is derived from the percent, fill it in to write something the percent cannot say.';
     displayName: 'Variation value';
     icon: 'bulletList';
   };
@@ -48,6 +48,14 @@ export interface ProductVariationValue extends Struct.ComponentSchema {
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 12;
       }>;
+    discountPercent: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
     label: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
