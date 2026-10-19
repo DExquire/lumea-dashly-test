@@ -154,12 +154,11 @@
 }
 
 /**
- * The light pill settles on a pale mint, not on the saturated green — its own
- * `state=Hover` variant, which the prototype shows but the REST API cannot
- * reach, because the whole button set lives in a remote library. So the ramp is
- * reversed here: same circles, same radii, same four colours, read from the
- * outside in, which ends the animation on `--color-green-50` and leaves the
- * label dark.
+ * "Shop now" in the hero. The button set lives in a remote library, so the REST
+ * API returns no children for its `state=Hover` variant and the settled fill is
+ * not read yet; the prototype shows it landing on a muted grey-green rather
+ * than on the saturated one. The reversed ramp below is a stand-in for that and
+ * is the one thing here that is not measured off the file.
  */
 .secondary {
   background-color: var(--color-surface-muted);
@@ -174,6 +173,18 @@
       var(--color-green) 79.35% 100%
     );
   }
+}
+
+/**
+ * "View details" in a product card — `status=ternary, Size=Extra small`.
+ * The only button in the set with no `vibrant grad` child, and the prototype
+ * confirms it: the hovered and resting frames are identical (#f4f6f5 over 69.1%
+ * of both, the next three values matching to 0.1%). No wave, no colour change,
+ * nothing at all on hover.
+ */
+.ternary {
+  background-color: var(--color-surface-muted);
+  color: var(--color-ink);
 }
 
 /* "Add to bag": green pill whose wave darkens instead of lightening. */

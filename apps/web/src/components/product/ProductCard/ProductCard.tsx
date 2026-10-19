@@ -143,7 +143,7 @@ export function ProductCard({
             {/* No arrow on the secondary action: the design gives one to
                 "Add to bag" only — its "View details" label ends at the "s"
                 and the rest of the pill is empty. */}
-            <Button variant="secondary" size="sm" showArrow={false} className={styles.action}>
+            <Button variant="ternary" size="sm" showArrow={false} className={styles.action}>
               View details
             </Button>
           </div>
