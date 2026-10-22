@@ -105,6 +105,9 @@
   line-height: 1;
   letter-spacing: fn.tracking(-2);
   text-align: center;
+  /* Only ever between the thumbnail and the label — a text-only chip has one
+     child, so this costs it nothing. */
+  gap: fn.rem(5);
   transition:
     background-color t.$duration-fast t.$ease-out,
     border-color t.$duration-fast t.$ease-out,
@@ -114,6 +117,34 @@
     border-color: var(--color-sage);
     background-color: var(--color-green-50);
   }
+}
+
+/**
+ * A chip carrying a thumbnail keeps the design's 40px height: 28 of picture, 5
+ * above and below, and the 1px border on each side, which `min-height` counts
+ * too. The 8 the text-only chip uses came to 44 and pushed everything under the
+ * group down by 4; 6 still came to 42.
+ */
+.chip[data-icon] {
+  padding-block: fn.rem(5);
+}
+
+/**
+ * The thumbnail itself. Measured on the design's own layer rather than guessed
+ * off a screenshot: 26.98 x 28 with a 4px radius, 6 from the chip's left edge
+ * (which is the stacked chip's own padding, so nothing extra is needed) and 5
+ * from the label. 26.98 is kept as 27 — the design's own image is not square.
+ *
+ * `cover` rather than `contain`: the design crops its photo to the box instead
+ * of letter-boxing it. The seed images are cut to 27:28 already, so nothing is
+ * actually cropped away.
+ */
+.icon {
+  flex: none;
+  width: fn.rem(27);
+  height: fn.rem(28);
+  border-radius: fn.rem(4);
+  object-fit: cover;
 }
 
 /**

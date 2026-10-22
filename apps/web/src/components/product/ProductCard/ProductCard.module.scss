@@ -47,6 +47,36 @@
   box-shadow:
     inset 0 0 0 1px var(--color-hairline),
     var(--shadow-soft);
+
+  /**
+   * The upward layer, softened in the overlay.
+   *
+   * `--shadow-soft` throws its last layer up and left — `-12px -8px 16px` at
+   * 0.16 — and that one is strong for how little it is blurred: measured above
+   * a card in the overlay, white holds until 10px up and the shadow is at full
+   * strength by 6, so the whole fall happens in about 4px and the eye reads it
+   * as a drawn line rather than a shadow. On the desktop column the cards sit
+   * further apart and it does not gather like that.
+   *
+   * Widening the blur was not enough — it made the fall softer but spread the
+   * ink further, and with 8px between cards the five shadows simply pooled:
+   * one flat grey field over the whole rail, white outside it, and the eye
+   * reads the place where it starts as a drawn line however gradual it is.
+   *
+   * So that layer does not grow, it shrinks: -6 -4 over 10 of blur at 0.05.
+   * It still lifts each card off the sheet, but it no longer reaches across
+   * the gaps or far above the row, so the cards end one by one the way the
+   * design draws them. The 8px/26px layer goes with it for the same reason —
+   * it is the one that reached furthest down and joined the row together.
+   */
+  @include bp.until("lg") {
+    box-shadow:
+      inset 0 0 0 1px var(--color-hairline),
+      1px 2px 4px rgba(156, 182, 186, 0.1),
+      2px 6px 7px rgba(156, 182, 186, 0.09),
+      5px 14px 9px rgba(156, 182, 186, 0.05),
+      -6px -4px 10px rgba(154, 173, 167, 0.05);
+  }
 }
 
 .media {
@@ -117,18 +147,27 @@
   background-color: var(--color-surface-muted);
   box-shadow: var(--shadow-card);
   color: var(--color-ink);
-  transition:
-    color t.$duration-fast t.$ease-out,
-    background-color t.$duration-fast t.$ease-out;
 
-  @include mx.hover {
-    background-color: var(--color-surface);
-    color: var(--color-green);
-  }
+  /**
+   * No hover rule, deliberately. `heart wrap` carries exactly one prototype
+   * interaction — On click -> `status: selected`, Smart animate, Ease out,
+   * 400ms — and no hover variant at all. The circle turning white and the
+   * outline turning green on hover were ours, not the design's.
+   */
 
-  &[aria-pressed="true"] {
-    background-color: var(--color-green-50);
-    color: var(--color-green-900);
+  /**
+   * Saved. The design's `heart wrap` has a `status` property, and its
+   * `selected` variant changes one thing only: the glyph itself fills with
+   * Brand/900 (#1b3829) while keeping its Neutral/900 outline. The circle stays
+   * Neutral/200 — tinting it green, which is what this used to do, is not in
+   * the component at all.
+   *
+   * The fill lands on the icon rather than on the button because the `<svg>`
+   * carries `fill="none"`, which the path inherits; overriding it here is what
+   * turns the outline into a solid heart.
+   */
+  &[aria-pressed="true"] .favouriteIcon {
+    fill: var(--color-green-950);
   }
 }
 
@@ -138,6 +177,16 @@
      0.74px against the design's 1.0. */
   width: fn.rem(26);
   height: fn.rem(23);
+  /* `transparent` rather than the SVG's own `none`, so the fill has a colour to
+     animate from; the timing is the interaction's own 400ms on Ease out. */
+  fill: transparent;
+  transition: fill t.$duration-hover t.$ease-figma-out;
+}
+
+@include mx.reduced-motion {
+  .favouriteIcon {
+    transition-duration: 1ms;
+  }
 }
 
 .body {
@@ -302,9 +351,11 @@
   /**
    * "View details" — a 74x17 underlined label in the frame, no pill, no arrow.
    *
-   * `> span:first-child` is the button's hover wave: it is a child of a
-   * different module, so it cannot be named from here, and left alone it would
-   * still rise into a link that no longer has a pill to contain it.
+   * There used to be a `> span:first-child { display: none }` here to kill the
+   * button's hover wave, which could not be named from this module. The wave is
+   * gone — `status=ternary` has no `vibrant grad` in the design, so the Button
+   * stops rendering that span entirely — and the rule then matched the label
+   * instead and hid the text. Nothing is blanked by position any more.
    */
   .actions .action:last-child {
     /* `width: auto` alone is not enough: the column stretches its children, so
@@ -336,7 +387,8 @@
     text-decoration: underline;
     text-underline-offset: fn.rem(3);
 
-    > span:first-child,
+    /* The arrow is opted out in the markup; this is only a guard in case the
+       label is ever given one back. */
     > svg {
       display: none;
     }

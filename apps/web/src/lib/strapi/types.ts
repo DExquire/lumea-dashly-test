@@ -48,6 +48,8 @@ export interface StrapiVariationValueComponent {
   /** Decimal fields arrive as strings over the REST API. */
   discountPercent?: number | string | null;
   discountLabel?: string | null;
+  /** Square thumbnail drawn to the left of the label; absent on most values. */
+  icon?: StrapiMedia | null;
 }
 
 export interface StrapiVariationGroupComponent {

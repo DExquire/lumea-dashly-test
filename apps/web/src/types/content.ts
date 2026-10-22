@@ -40,6 +40,12 @@ export interface VariationOption {
    * `null` when the option carries no badge, which is most of them.
    */
   discount: string | null;
+  /**
+   * Small square thumbnail the design draws to the left of the label on a
+   * full-width chip, or `null` when the value has none — which is most of them,
+   * and which is why the chip must look right without it.
+   */
+  icon: MediaAsset | null;
 }
 
 /**

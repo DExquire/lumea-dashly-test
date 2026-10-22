@@ -8,9 +8,17 @@
   inset: 0;
   z-index: 100;
   display: flex;
-  /* The mobile frame's products block is a full-screen panel (`opened menues`
-     is 371x847 inside a 375x844 frame), not a sheet hugging the bottom edge. */
-  align-items: stretch;
+  /**
+   * The mobile frame's products block is a full-screen panel (`opened menues`
+   * is 371x847 inside a 375x844 frame), not a sheet hugging the bottom edge.
+   *
+   * `flex-start`, not `stretch`: stretching clamped the panel's own box to one
+   * viewport height while its content stayed 813 tall, so on a short screen the
+   * white background ended 213px above the step grid and the page behind showed
+   * through under it. With `flex-start` the panel is as tall as its content and
+   * `min-height: 100%` still fills a screen taller than that.
+   */
+  align-items: flex-start;
   /**
    * The panel scrolls as one page, not from a box inside it.
    *
@@ -31,7 +39,11 @@
 }
 
 .backdrop {
-  position: absolute;
+  /* Fixed rather than absolute: `.root` is the scroll box, so an absolute
+     backdrop is only as tall as one screen and scrolls away with the content.
+     Fixed, it stays over the viewport however far the panel is scrolled - and
+     covers the elastic overscroll at the end of the scroll as well. */
+  position: fixed;
   inset: 0;
   background-color: rgba(33, 39, 33, 0.32);
   opacity: 0;

@@ -26,6 +26,13 @@ export interface SeedVariationValue {
   discountPercent?: number;
   /** Overrides the badge text; derived from `discountPercent` when omitted. */
   discountLabel?: string;
+  /**
+   * File name inside `data/seed/images` for the small square thumbnail the
+   * design draws to the left of the label on a full-width chip. Omit it and the
+   * chip is text only. The same file may be reused across values and products —
+   * it is uploaded once.
+   */
+  icon?: string;
 }
 
 export interface SeedProduct {
@@ -80,7 +87,18 @@ export const seedProducts: SeedProduct[] = [
     title: 'Daily Moisturiser',
     volume: '50 ml',
     price: 32,
-    discountPercent: 15,
+    /**
+     * No product-level discount here, deliberately, even though the Figma card
+     * draws this one at "£32.00 / £27.20 / -15%".
+     *
+     * The mock is a still: nothing in it reacts to a click, and the chips below
+     * advertise -10 % and -20 %. Keep the product's own -15 % and the card
+     * contradicts itself the moment the shopper uses it — picking the "-10 %"
+     * chip puts the price UP, from 27.20 to 28.80, because a variation discount
+     * replaces the product's rather than stacking on it. With the product
+     * discount gone, 30 ml is the plain £32.00 and every chip only ever takes
+     * money off.
+     */
     badges: [
       { label: 'New', tone: 'new' },
       { label: 'Bestseller', tone: 'bestseller' },
@@ -123,7 +141,17 @@ export const seedProducts: SeedProduct[] = [
     variationGroups: [
       {
         name: 'Set includes',
-        values: ['Cleanser + Serum + Cream', 'Cleanser + Serum + SPF'],
+        /**
+         * The thumbnail is the design's own: its two chips carry the same photo
+         * (`pexels-tima-miroshnichenko-6763849`, drawn 26.98x28 with a 4px
+         * radius), so both values point at the same file here. The field is per
+         * value all the same, so an editor can give them different pictures
+         * without a schema change.
+         */
+        values: [
+          { label: 'Cleanser + Serum + Cream', icon: 'variation-set-includes.webp' },
+          { label: 'Cleanser + Serum + SPF', icon: 'variation-set-includes.webp' },
+        ],
       },
     ],
     categoryKeys: ['cleansers', 'makeup-removers'],
@@ -136,7 +164,20 @@ export const seedProducts: SeedProduct[] = [
     price: 26,
     salePrice: 22,
     badges: [{ label: 'New', tone: 'new' }],
-    variationGroups: [{ name: 'Choose finish', values: ['Invisible Finish', 'Tinted Finish'] }],
+    variationGroups: [
+      {
+        name: 'Choose finish',
+        /**
+         * Same story as "Set includes": the design puts one photo on both of
+         * its chips (the dropper shot, drawn 30.04x26.97 with the same 4px
+         * radius), so both values point at the same file.
+         */
+        values: [
+          { label: 'Invisible Finish', icon: 'variation-choose-finish.webp' },
+          { label: 'Tinted Finish', icon: 'variation-choose-finish.webp' },
+        ],
+      },
+    ],
     categoryKeys: ['cleansers'],
     image: 'product-spf.webp',
     sortOrder: 4,

@@ -45,10 +45,34 @@ async function uploadSeedImage(strapi: Core.Strapi, fileName: string): Promise<n
   return uploaded?.id ?? null;
 }
 
+/**
+ * Uploads a seed image once per file name. Chip thumbnails reuse the product
+ * photos, so without the cache the same file would be uploaded several times
+ * and the media library would fill up with duplicates.
+ */
+async function resolveImageId(
+  strapi: Core.Strapi,
+  fileName: string,
+  cache: Map<string, number | null>,
+): Promise<number | null> {
+  const cached = cache.get(fileName);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const id = await uploadSeedImage(strapi, fileName);
+
+  cache.set(fileName, id);
+
+  return id;
+}
+
 function buildProductData(
   product: SeedProduct,
   categoryIds: Record<string, string>,
   imageId: number | null,
+  iconIds: Map<string, number | null>,
 ) {
   // Optional fields are omitted rather than set to `null`: an empty field in
   // Strapi means "not filled in", which is exactly what the frontend fallbacks
@@ -76,6 +100,11 @@ function buildProductData(
                 ? { discountPercent: value.discountPercent }
                 : {}),
               ...(value.discountLabel ? { discountLabel: value.discountLabel } : {}),
+              // A missing file is a warning, not a failure: the chip then just
+              // renders without its thumbnail.
+              ...(value.icon && iconIds.get(value.icon)
+                ? { icon: iconIds.get(value.icon) }
+                : {}),
             },
       ),
     })),
@@ -143,11 +172,21 @@ export async function seedDemoContent(strapi: Core.Strapi): Promise<void> {
     categoryIds[category.key] = record.documentId;
   }
 
+  const uploads = new Map<string, number | null>();
+
   for (const product of seedProducts) {
-    const imageId = product.image ? await uploadSeedImage(strapi, product.image) : null;
+    const imageId = product.image ? await resolveImageId(strapi, product.image, uploads) : null;
+
+    for (const group of product.variationGroups ?? []) {
+      for (const value of group.values) {
+        if (typeof value !== 'string' && value.icon) {
+          await resolveImageId(strapi, value.icon, uploads);
+        }
+      }
+    }
 
     await strapi.documents('api::product.product').create({
-      data: buildProductData(product, categoryIds, imageId),
+      data: buildProductData(product, categoryIds, imageId, uploads),
     });
   }
 

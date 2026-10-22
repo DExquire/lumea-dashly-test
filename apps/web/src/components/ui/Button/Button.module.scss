@@ -75,22 +75,18 @@
 }
 
 /**
- * `scale(4)` is what it takes for the innermost disc — 0.43164 of the outer
- * radius — to clear the half-diagonal of every button size we draw, down to the
- * 152x46 one in the mobile card; anything smaller leaves a ring showing at a
- * corner. The 34% is the shift that puts the circle's centre on the button's:
- * exactly it runs from 31.4% on the 206x54 pill to 38% on the 248x42 one, and
- * at this scale that 7px spread is far inside the overflow.
+ * There is no shared hover rule, because there is no shared end state.
  *
- * `:active` lands on the same state rather than inventing a pressed one — the
- * component set has only Default and Hover — and it is what gives the mobile
- * cards' buttons a response to a tap, where there is no hover at all.
+ * Every button in the design grows its circle to its own size and parks it in
+ * its own place — the hero's goes to 1200 across, the light pill's to 250 — and
+ * one `scale()` for all three is what made these look approximately right and
+ * measurably wrong. Each variant below carries the two bounding boxes read off
+ * its own component, so the numbers can be checked against the file one by one.
+ *
+ * `:active` lands on the same state rather than inventing a pressed one: the
+ * component set has no pressed variant, and it is what gives the buttons a
+ * response to a tap, where there is no hover at all.
  */
-.root:hover .wave,
-.root:focus-visible .wave,
-.root:active .wave {
-  transform: translate(-50%, 34%) scale(4);
-}
 
 @include mx.reduced-motion {
   .wave {
@@ -145,33 +141,95 @@
 }
 
 /* The dark pill takes the ring stack as `.wave` defines it. Its label is not
-   re-coloured on hover: the Hover variant keeps it white, over the green. The
-   rule that turned it dark here is what made our version read as "rings with
-   black text" instead of the design's green button. */
+   re-coloured on hover: its `state=Hover` variant carries Brand/100…500 — our
+   own green ramp — under a Neutral/100 label, so it ends as a flat green pill
+   with white text. The rule that turned the label dark here is what made our
+   version read as "rings with black text" instead of the design's button. */
 .primary {
   background-color: var(--color-ink);
   color: var(--color-surface);
+
+  /**
+   * "Find your routine" — `status=primary, Size=Big, Color=Dark`, 365x84.
+   * Hover is "While hovering -> state=Hover", Smart animate, Ease in and out,
+   * 400ms. `vibrant grad` against the button's top-left:
+   *
+   *            diameter   x        y        centre
+   *   Default    256.88    53.12     84      (181.56, 212.44)
+   *   Hover     1200      -418.44  -557.58   (181.56,  42.42)
+   *
+   * The button's own centre is (182.5, 42), so the circle is centred to within
+   * a pixel and does not move sideways: it only rises 170 and grows.
+   * 256.88 is 70.378% of 365, which is what `.wave` already draws, and the
+   * resting circle is tangent to the bottom edge, which `bottom: 0` already
+   * gives. The two numbers below are the whole of the fix.
+   *
+   * 1200 / 256.88 = 4.671. 33.81% is the shift that lands the centre on 42.42
+   * rather than the 42.9 that a round 34% gave.
+   */
+  &:hover .wave,
+  &:focus-visible .wave,
+  &:active .wave {
+    transform: translate(-50%, 33.81%) scale(4.671);
+  }
 }
 
 /**
- * "Shop now" in the hero. The button set lives in a remote library, so the REST
- * API returns no children for its `state=Hover` variant and the settled fill is
- * not read yet; the prototype shows it landing on a muted grey-green rather
- * than on the saturated one. The reversed ramp below is a stand-in for that and
- * is the one thing here that is not measured off the file.
+ * "Shop now" in the hero — `status=primary, Size=Small, Color=Light`.
+ *
+ * Read off the component's own `state=Hover` variant. The light pill is the one
+ * button whose rising layer is not four circles: it is a single two-stop radial,
+ * #d9e1e2 at the centre out to #bcc9c5 at the rim, which is why it settles on a
+ * muted grey-green instead of on anything from the brand ramp. The label travels
+ * with it, from Neutral/900 (#212721) to Brand/900 (#1b3829).
  */
 .secondary {
   background-color: var(--color-surface-muted);
   color: var(--color-ink);
 
+  /**
+   * 206x54. Hover is "While hovering -> state=Hover", Smart animate, Ease in
+   * and out, 400ms. `vibrant grad` against the button's top-left:
+   *
+   *            diameter   x      y      centre
+   *   Default    216       10     54    (118, 162)
+   *   Hover      250       -7    -95    (118,  30)
+   *
+   * Three things here are nothing like the hero's, which is why sharing one
+   * rule could not work:
+   *
+   * - the circle is pinned to the right of centre. The button's centre is 103,
+   *   the circle's is 118, and it stays there — hence `left: 118px` instead of
+   *   the shared centring.
+   * - it starts at 216, not at the 145 that 70.378% of 206 would give.
+   * - it barely grows: 250 / 216 = 1.157, against the hero's 4.671. It does not
+   *   need to. At 250 the far corner of the pill is 121.8 from the centre and
+   *   the radius is 125, so it covers the button and stops.
+   *
+   * The rise is 132 (162 -> 30), written as 135 and 3 because both are measured
+   * from `top: 50%` of our 54-tall button. The design's Hover variant is 52
+   * tall rather than 54; we keep 54, because animating the height would nudge
+   * the card around it for 2px nobody can see.
+   */
   .wave {
-    background: radial-gradient(
-      circle closest-side at 50% 50%,
-      var(--color-green-50) 0 43.164%,
-      var(--color-green-100) 43.164% 60.664%,
-      var(--color-green-300) 60.664% 79.35%,
-      var(--color-green) 79.35% 100%
-    );
+    top: 50%;
+    bottom: auto;
+    left: fn.rem(118);
+    width: fn.rem(216);
+    background: radial-gradient(circle closest-side at 50% 50%, #d9e1e2 0%, #bcc9c5 100%);
+    transform: translate(-50%, -50%) translateY(fn.rem(135)) scale(1);
+  }
+
+  &:hover .wave,
+  &:focus-visible .wave,
+  &:active .wave {
+    transform: translate(-50%, -50%) translateY(fn.rem(3)) scale(1.157);
+  }
+
+  &:hover,
+  &:focus-visible,
+  &:active {
+    color: var(--color-green-950);
   }
 }
 
@@ -187,23 +245,74 @@
   color: var(--color-ink);
 }
 
-/* "Add to bag": green pill whose wave darkens instead of lightening. */
+/**
+ * "Add to bag" — `status=primary, Size=Small, Color=green`.
+ *
+ * Measured off the file rather than shared with the other buttons, because its
+ * hover is not the same mechanism at all. Its prototype interaction reads
+ * "While hovering -> Change to status=primary, Size=Small, **Color=Dark**,
+ * state=Default", Smart animate, Ease in and out, 400ms. It does not go to
+ * `state=Hover` the way the hero button does: it swaps to the *dark* button in
+ * its resting state, and Smart animate tweens the two layers that differ.
+ *
+ * The layer that moves is `vibrant grad black` — four concentric circles at the
+ * usual 100 / 79.35 / 60.664 / 43.164 radii, greys rather than greens:
+ * #e3e8e9, #858585, #505050, #212721 from the outside in.
+ *
+ * Its two bounding boxes, with the button's own top-left as the origin:
+ *
+ *            diameter   x        y        centre
+ *   green      215      -4…-6     54      (~102, 161.5)
+ *   Dark       540      -167.5   -247.5   (102.5,  22.5)
+ *
+ * -4 on the 152x46 card button, -6 on the 248x44 one: the stack is pinned near
+ * the left edge, not centred, so its centre sits ~102px in from that edge and
+ * stays there while it grows. Only two things actually change: the diameter,
+ * 215 -> 540, which is a scale of 2.512, and the centre's height, which rises
+ * from 161.5 to the middle of the pill. Hence `left: 102px` and a rise of 139
+ * (161.5 - 22.5) rather than the shared rule's percentages.
+ *
+ * At rest that puts the circle's top edge at y=53.5 against the design's 54.
+ * At the end the innermost circle, 233 across, covers the pill everywhere
+ * except the last ~29px on the right, which keeps the #505050 ring — the pale
+ * crescent the design draws at the right end of the dark button. It is in the
+ * mock, not a bug.
+ *
+ * The pill's own fill cross-fades green -> ink underneath on the same curve,
+ * because Smart animate tweens that too while the circles are still rising.
+ */
 .accent {
   background-color: var(--color-green);
   color: var(--color-surface);
+  transition:
+    color t.$duration-hover t.$ease-figma-in-out,
+    background-color t.$duration-hover t.$ease-figma-in-out;
 
   .wave {
+    top: 50%;
+    bottom: auto;
+    left: fn.rem(102);
+    width: fn.rem(215);
     background: radial-gradient(
       circle closest-side at 50% 50%,
-      var(--color-ink) 0 43.164%,
-      rgba(33, 39, 33, 0.82) 43.164% 60.664%,
-      rgba(50, 102, 75, 0.7) 60.664% 79.35%,
-      rgba(50, 102, 75, 0.35) 79.35% 100%
+      #212721 0 43.164%,
+      #505050 43.164% 60.664%,
+      #858585 60.664% 79.35%,
+      #e3e8e9 79.35% 100%
     );
+    transform: translate(-50%, -50%) translateY(fn.rem(139)) scale(1);
+  }
+
+  &:hover .wave,
+  &:focus-visible .wave,
+  &:active .wave {
+    transform: translate(-50%, -50%) translateY(0) scale(2.512);
   }
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &:active {
+    background-color: var(--color-ink);
     color: var(--color-surface);
   }
 }

@@ -112,6 +112,9 @@ function mapVariationGroups(
           discount:
             trimmed(value.discountLabel) ??
             (discountPercent !== null ? `-${discountPercent}%` : null),
+          /* Decorative: the chip's own label already says what the value is, so
+             the empty fallback alt is the correct one rather than a lazy one. */
+          icon: mapMedia(value.icon, ''),
         },
       ];
     });

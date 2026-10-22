@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { VariationGroup } from '@/types/content';
 import styles from './VariationSelector.module.scss';
 
@@ -52,7 +53,24 @@ export function VariationSelector({
               checked={selectedId === option.id}
               onChange={() => onSelect(option.id)}
             />
-            <span className={styles.chip}>
+            <span className={styles.chip} data-icon={option.icon ? '' : undefined}>
+              {/*
+                Decoration, not content: the label beside it already names the
+                value, so the image is given an empty alt and hidden from the
+                accessibility tree instead of being announced twice. Most values
+                have no icon at all, which is why the chip is laid out to look
+                right either way.
+              */}
+              {option.icon && (
+                <Image
+                  className={styles.icon}
+                  src={option.icon.url}
+                  alt=""
+                  width={27}
+                  height={28}
+                  aria-hidden="true"
+                />
+              )}
               {option.label}
               {/*
                 The badge is a real part of the label, not decoration: a screen

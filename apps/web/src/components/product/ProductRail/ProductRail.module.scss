@@ -63,16 +63,52 @@
     /* Behind the row: `.products` is `position: sticky` and therefore a
        stacking context, so the -1 cannot escape the column. */
     z-index: -1;
-    inset: fn.rem(2) 0;
-    border-radius: var(--radius-sm);
+
+    /**
+     * The plate is only as wide as the shadow it has to throw, and the clip is
+     * written in pixels rather than in `100%`.
+     *
+     * It used to be the full width of the row, clipped back to the left strip
+     * with `inset(-32px 100% -32px -32px)`. That works, but it rests entirely
+     * on the clip: the moment an engine drops it — and `right: 100%` on a box
+     * whose left inset is negative is exactly the kind of degenerate rectangle
+     * engines disagree about — the plate throws its upward shadow across the
+     * whole row and draws a hard-edged grey band above the cards. Measured
+     * here with the clip switched off: a step from 255 to 237 in a single
+     * pixel row, 32px above the cards, running the length of the rail.
+     *
+     * 40 wide is past twice the 16px blur, so the shadow falling to the left
+     * of the row is identical to the full-width plate's — only the left edge
+     * and the two left corners are near enough to shape it, and both are kept.
+     * The clip is now `40px` on the right, which lands on the box's own right
+     * edge and leaves the same strip visible without any degenerate case. And
+     * if a browser ignores the clip entirely, the worst it can draw is 40px of
+     * doubled shadow over the first card instead of a band across the rail.
+     *
+     * The 32s are still the blur's reach, so nothing is clipped that should
+     * show.
+     */
+    top: fn.rem(2);
+    bottom: fn.rem(2);
+    left: 0;
+    width: fn.rem(40);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
     box-shadow: -12px -8px 16px rgba(154, 173, 167, 0.16);
-    clip-path: inset(-32px 100% -32px -32px);
+    clip-path: inset(-32px #{fn.rem(40)} -32px -32px);
     pointer-events: none;
 
-    /* The overlay's panel paints its own white background in this stacking
-       context, so a plate at -1 would be covered by it. */
+    /**
+     * Not in the overlay at all.
+     *
+     * One plate behind the whole row is exactly the "one shared shadow" the
+     * design does not have: every card is meant to end on its own, gaps
+     * included. On the desktop column it earns its place by redrawing the
+     * sliver the scroller cuts at the left; in the overlay the row now has
+     * real room on that side instead, so the plate has nothing left to fix
+     * and only adds a straight-edged band under the cards.
+     */
     @include bp.until("lg") {
-      z-index: 0;
+      display: none;
     }
   }
 }
@@ -87,6 +123,7 @@
 
   align-items: stretch;
   height: 100%;
+
   /**
    * Room for the cards' own drop shadows above and below, handed straight back
    * so the column's height is unchanged. Without it the scroll box clips each
@@ -117,6 +154,31 @@
   @include bp.until("lg") {
     position: relative;
     gap: fn.rem(8);
+
+    /**
+     * The left edge of the row, softened.
+     *
+     * The scroll box starts exactly on the first card, so the card's shadow —
+     * 12 to the left under a 16 blur — is cut dead at that line and the rail
+     * ends in a straight grey edge instead of fading. The plate behind the row
+     * covers it on the desktop column; in the overlay it does not.
+     *
+     * Same trick the row already uses vertically: 20 of room on that side,
+     * handed straight back with a negative margin so nothing moves, so the
+     * shadow has somewhere to fall instead of being sliced. No mask: a mask
+     * puts the scroller on its own compositing layer, and that layer's edge
+     * draws a thin seam of its own — one artefact traded for another.
+     *
+     * `scroll-padding-inline-start` is what keeps the snap honest: without it
+     * the first card snaps its own left edge to the scrollport's, which parks
+     * the rail at `scrollLeft: 20` and shifts the whole row 20 to the left.
+     *
+     * Only this side — the right edge of the scroller is the edge of the
+     * screen, so there is nothing there to cut and no room to borrow.
+     */
+    padding-inline-start: fn.rem(20);
+    margin-inline-start: fn.rem(-20);
+    scroll-padding-inline-start: fn.rem(20);
   }
 }
 

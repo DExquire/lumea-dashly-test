@@ -17,7 +17,16 @@ export const CACHE_TAGS = {
 const PRODUCT_POPULATE = {
   image: { fields: ['url', 'alternativeText', 'width', 'height'] },
   badges: true,
-  variationGroups: { populate: { values: true } },
+  /* The chip thumbnail is a media field inside a component inside a component,
+     so it needs its own `populate` — `values: true` alone returns the labels
+     without it. Only the four fields the mapper reads are asked for. */
+  variationGroups: {
+    populate: {
+      values: {
+        populate: { icon: true },
+      },
+    },
+  },
   categories: { fields: ['name'] },
 } as const;
 
