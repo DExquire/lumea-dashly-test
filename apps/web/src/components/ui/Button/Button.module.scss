@@ -198,9 +198,11 @@
    * Three things here are nothing like the hero's, which is why sharing one
    * rule could not work:
    *
-   * - the circle is pinned to the right of centre. The button's centre is 103,
-   *   the circle's is 118, and it stays there — hence `left: 118px` instead of
-   *   the shared centring.
+   * - the circle is centred on the button. The static Hover variant has it at
+   *   118 against the button's own centre of 103, and following that number
+   *   made the fill grow lopsided — 15px of it to the right of where the eye
+   *   expects. The prototype's preview is the reference, and there the grey
+   *   starts from the middle of the button, so `left: 50%` it is.
    * - it starts at 216, not at the 145 that 70.378% of 206 would give.
    * - it barely grows: 250 / 216 = 1.157, against the hero's 4.671. It does not
    *   need to. At 250 the far corner of the pill is 121.8 from the centre and
@@ -214,7 +216,7 @@
   .wave {
     top: 50%;
     bottom: auto;
-    left: fn.rem(118);
+    left: 50%;
     width: fn.rem(216);
     background: radial-gradient(circle closest-side at 50% 50%, #d9e1e2 0%, #bcc9c5 100%);
     transform: translate(-50%, -50%) translateY(fn.rem(135)) scale(1);

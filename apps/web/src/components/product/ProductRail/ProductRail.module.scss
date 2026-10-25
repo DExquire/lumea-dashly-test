@@ -156,29 +156,44 @@
     gap: fn.rem(8);
 
     /**
-     * The left edge of the row, softened.
+     * Both edges of the row, and the room the cards' shadows need.
      *
-     * The scroll box starts exactly on the first card, so the card's shadow —
-     * 12 to the left under a 16 blur — is cut dead at that line and the rail
-     * ends in a straight grey edge instead of fading. The plate behind the row
-     * covers it on the desktop column; in the overlay it does not.
+     * 22 is where the frame starts its first card: the sheet keeps 12 of
+     * padding and `.rail` adds 10. The scroller is pulled back by exactly that
+     * much, which puts its own left edge on the edge of the screen, and the
+     * same 22 is handed back as padding so the first card lands where the
+     * frame draws it. Two things follow from that. The card's shadow — 12 to
+     * the left under a 16 blur — now has somewhere to fall instead of being
+     * sliced flush at the scroll box; and a card scrolls completely out of
+     * sight instead of parking a couple of pixels short of the edge.
      *
-     * Same trick the row already uses vertically: 20 of room on that side,
-     * handed straight back with a negative margin so nothing moves, so the
-     * shadow has somewhere to fall instead of being sliced. No mask: a mask
-     * puts the scroller on its own compositing layer, and that layer's edge
-     * draws a thin seam of its own — one artefact traded for another.
+     * No mask for the fade: a mask puts the scroller on its own compositing
+     * layer, and that layer's edge draws a thin seam of its own — one artefact
+     * traded for another.
      *
-     * `scroll-padding-inline-start` is what keeps the snap honest: without it
-     * the first card snaps its own left edge to the scrollport's, which parks
-     * the rail at `scrollLeft: 20` and shifts the whole row 20 to the left.
+     * The closing side is the newer half. The row used to end flush with the
+     * screen, so scrolled to the end the last card was cut by the edge with no
+     * air after it; the same 22 as an end padding gives the row a stop that
+     * mirrors its start.
      *
-     * Only this side — the right edge of the scroller is the edge of the
-     * screen, so there is nothing there to cut and no room to borrow.
+     * `scroll-padding-inline-start` no longer has snapping to keep honest (see
+     * below) but still applies when the browser scrolls a focused card into
+     * view, and without it that lands the card's left edge on the scrollport's
+     * rather than on the 22 line.
      */
-    padding-inline-start: fn.rem(20);
-    margin-inline-start: fn.rem(-20);
-    scroll-padding-inline-start: fn.rem(20);
+    padding-inline: fn.rem(22);
+    margin-inline-start: fn.rem(-22);
+    scroll-padding-inline-start: fn.rem(22);
+
+    /**
+     * No snapping here.
+     *
+     * `proximity` still pulls a card's left edge back onto the 22 line as soon
+     * as the flick ends anywhere near it, so the row can never rest with a
+     * card half off the screen — it always re-parks on a card boundary. The
+     * design's row is a free scroller, so the rail scrolls where it is left.
+     */
+    scroll-snap-type: none;
   }
 }
 
