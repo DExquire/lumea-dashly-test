@@ -267,18 +267,27 @@
  *   green      215      -4…-6     54      (~102, 161.5)
  *   Dark       540      -167.5   -247.5   (102.5,  22.5)
  *
- * -4 on the 152x46 card button, -6 on the 248x44 one: the stack is pinned near
- * the left edge, not centred, so its centre sits ~102px in from that edge and
- * stays there while it grows. Only two things actually change: the diameter,
- * 215 -> 540, which is a scale of 2.512, and the centre's height, which rises
- * from 161.5 to the middle of the pill. Hence `left: 102px` and a rise of 139
- * (161.5 - 22.5) rather than the shared rule's percentages.
+ * -4 on the 152x46 card button, -6 on the 248x44 one: in the file the stack is
+ * pinned near the left edge rather than centred, which puts its centre ~102px
+ * in from that edge — 22 left of the 248px button's own middle. Drawn that way
+ * the fill enters off to one side and the button reads as filling crookedly,
+ * which is what the studio asked us to correct on the grey button and then on
+ * this one. So the centre is the button's middle, `left: 50%`, and the file's
+ * 102 is deliberately not followed.
  *
- * At rest that puts the circle's top edge at y=53.5 against the design's 54.
- * At the end the innermost circle, 233 across, covers the pill everywhere
- * except the last ~29px on the right, which keeps the #505050 ring — the pale
- * crescent the design draws at the right end of the dark button. It is in the
- * mock, not a bug.
+ * The diameter is the file's 215 and the centre rises 139 (161.5 -> 22.5)
+ * rather than by the shared rule's percentages, which puts the circle's top
+ * edge at y=53.5 at rest against the design's 54.
+ *
+ * The growth is 2.72, not the file's 2.512 (540 / 215). Pinned at x=102 the
+ * file's number leaves the innermost circle — 233 across, 116.5 of radius —
+ * short of the right edge by 29px, and that leftover #505050 ring is the pale
+ * crescent the mock draws at the right end of the dark button. Centred, the
+ * same slack splits into a 7.5px grey rim at each end, because a corner of a
+ * 248x44 pill is 125.9 from its middle and 116.5 does not reach it. Either way
+ * the button reads as filling crookedly or as not filling at all, which is the
+ * complaint. 2.72 puts the innermost radius at 126.2, so the fill closes over
+ * the whole pill and it ends flat #212721 — the Dark variant this animates to.
  *
  * The pill's own fill cross-fades green -> ink underneath on the same curve,
  * because Smart animate tweens that too while the circles are still rising.
@@ -293,7 +302,7 @@
   .wave {
     top: 50%;
     bottom: auto;
-    left: fn.rem(102);
+    left: 50%;
     width: fn.rem(215);
     background: radial-gradient(
       circle closest-side at 50% 50%,
@@ -308,7 +317,7 @@
   &:hover .wave,
   &:focus-visible .wave,
   &:active .wave {
-    transform: translate(-50%, -50%) translateY(0) scale(2.512);
+    transform: translate(-50%, -50%) translateY(0) scale(2.72);
   }
 
   &:hover,

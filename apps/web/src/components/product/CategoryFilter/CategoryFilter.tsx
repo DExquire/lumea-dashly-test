@@ -17,13 +17,9 @@ interface CategoryFilterProps {
  * active state to assistive tech without the roving-tabindex a real tablist
  * would require.
  *
- * Two elements, not one. `.root` is the scroll box and `.pill` is the white
- * stadium the design draws: the pill is as wide as its chips and travels
- * inside the box, so on a phone it starts 12 in from the edge with its right
- * end past the screen — exactly as the frame draws it — and scrolling it to
- * the end brings that end into view with the same 12 of air after it. Painting
- * the stadium on the scroll box itself pins it to the screen instead, and then
- * its end can never be reached.
+ * The row is a fixed stadium with its names scrolling inside it: both of its
+ * ends stay visible and rounded, and only the content moves. Nothing here has
+ * to be measured for that, so the component is plain markup.
  */
 export function CategoryFilter({ categories, activeCategoryId, onSelect }: CategoryFilterProps) {
   if (categories.length === 0) {
@@ -31,24 +27,22 @@ export function CategoryFilter({ categories, activeCategoryId, onSelect }: Categ
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.pill} role="group" aria-label="Product categories">
-        {categories.map((category) => {
-          const isActive = category.id === activeCategoryId;
+    <div className={styles.root} role="group" aria-label="Product categories">
+      {categories.map((category) => {
+        const isActive = category.id === activeCategoryId;
 
-          return (
-            <button
-              key={category.id}
-              type="button"
-              className={`${styles.item} ${isActive ? styles.active : ''}`}
-              aria-pressed={isActive}
-              onClick={() => onSelect(category.id)}
-            >
-              {category.name}
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={category.id}
+            type="button"
+            className={`${styles.item} ${isActive ? styles.active : ''}`}
+            aria-pressed={isActive}
+            onClick={() => onSelect(category.id)}
+          >
+            {category.name}
+          </button>
+        );
+      })}
     </div>
   );
 }

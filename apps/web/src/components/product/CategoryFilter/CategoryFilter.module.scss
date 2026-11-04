@@ -3,79 +3,17 @@
 @use "breakpoints" as bp;
 @use "tokens" as t;
 
-/**
- * The scroll box. It carries no paint of its own — the white stadium is
- * `.pill` below, and it travels inside this box.
- */
 .root {
   display: flex;
-  align-self: flex-start;
-  max-width: 100%;
-  /* More categories than fit are reachable by scrolling the row, so it never
-     wraps into a second line or pushes the products down. `none` for the same
-     reason as the rail: no rubber band past either end, and no page scroll or
-     back-gesture picked up when the row runs out. */
-  overflow-x: auto;
-  overscroll-behavior-x: none;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  /**
-   * On a phone the box is the screen, not the panel.
-   *
-   * The frame draws its `menu` 435 wide on a 375 phone, starting 12 in from
-   * the edge: the pill is wider than the screen and its closing end is simply
-   * not drawn. That only works if the pill can travel — so the box is pulled
-   * back by the panel's own 12 to sit on the edge of the screen, and hands the
-   * same 12 back as padding on both sides. The pill therefore starts where the
-   * frame puts it, runs off the right edge at rest, and scrolling it to the
-   * end brings its closing cap into view with 12 of air after it — the mirror
-   * of the 12 before it at rest.
-   */
-  @include bp.until("lg") {
-    margin-inline-start: fn.rem(-12);
-    padding-inline: fn.rem(12);
-
-    /* `max-width: 100%` is measured against the panel's content box, so
-       without this the 12 borrowed on the left comes straight back off the
-       right and the row stops 12 short of the screen. */
-    max-width: calc(100% + #{fn.rem(12)});
-
-    /**
-     * Room above and below for the pill's shadow, handed straight back so the
-     * row's height is unchanged.
-     *
-     * `--shadow-filter-mobile` throws a long way — its readable layers reach
-     * about 30 up and 55 down — and a scroll box clips its content at its own
-     * edges, so without this the shadow is cut flush at the top and bottom and
-     * the row ends in a straight grey line.
-     *
-     * Sideways it is left clipped on purpose: there the box edge is the edge
-     * of the screen, which is exactly where the pill and its shadow should
-     * disappear.
-     */
-    padding-block: fn.rem(32) fn.rem(72);
-    margin-block: fn.rem(-32) fn.rem(-72);
-  }
-}
-
-/**
- * The white stadium itself: as wide as the chips inside it, never stretched to
- * the box, so its two rounded ends are real and reachable.
- */
-.pill {
-  display: inline-flex;
-  flex: none;
   align-items: center;
   gap: fn.rem(12);
+  align-self: flex-start;
+  max-width: 100%;
   padding: fn.rem(4);
   border-radius: fn.rem(200);
   background-color: var(--color-surface);
-  /* Inset ring instead of a border: a real one made the pill 78 tall against
-     the design's 76 and pushed the product rail 2px down with it. */
+  /* Inset ring instead of a border: a real one made the pill 78 tall against the
+     design's 76 and pushed the product rail 2px down with it. */
   box-shadow:
     inset 0 0 0 1px var(--color-hairline),
     var(--shadow-soft);
@@ -83,15 +21,23 @@
   /**
    * The pill in the mobile products panel carries no stroke at all and a
    * shadow of its own — see `--shadow-filter-mobile`. With `--shadow-soft` the
-   * 25px band the frame draws above the pill was missing entirely, and the
-   * ring drew an outline the frame has not got.
-   *
-   * It travels with the pill, which is what lets the pill's closing end be
-   * reached and still read as an end: whatever casts the shadow also draws the
-   * silhouette, so a shadow pinned to the panel pins the silhouette with it.
+   * 25px band the frame draws above the pill was missing entirely, and the ring
+   * drew an outline the frame has not got.
    */
   @include bp.until("lg") {
     box-shadow: var(--shadow-filter-mobile);
+
+  }
+  /* More categories than fit are reachable by scrolling the pill itself, so the
+     row never wraps into a second line or pushes the products down. `none` for
+     the same reason as the rail: no rubber band past either end, and no page
+     scroll or back-gesture picked up when the row runs out. */
+  overflow-x: auto;
+  overscroll-behavior-x: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 
   @include bp.from("lg") {
@@ -105,10 +51,9 @@
      * 8 on the closing side, not 4: `menu` is 588 wide in the frame and ours
      * came to 584. The frame's own row is 4 + 149 + 24 + 160 + 24 + 223 + 4,
      * and its "Face Wash" is typed with a leading space — 4.3px of it — which
-     * is what our labels are short of. Spending it here puts the pill's
-     * rounded end where the design draws it and leaves 37 after the last label
-     * against the frame's 36, rather than moving every label to chase the same
-     * 4px.
+     * is what our labels are short of. Spending it here puts the pill's rounded
+     * end where the design draws it and leaves 37 after the last label against
+     * the frame's 36, rather than moving every label to chase the same 4px.
      */
     padding-right: fn.rem(8);
   }
