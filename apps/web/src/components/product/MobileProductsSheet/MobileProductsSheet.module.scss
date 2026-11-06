@@ -173,16 +173,11 @@
      resting place before anything had even scrolled. */
   top: 0;
   /**
-   * The row sits inside the panel's padding on both sides, 12 from each edge
-   * of the screen.
-   *
-   * The frame draws its `menu` 435 wide on a 375 phone and lets the screen cut
-   * it, so by the letter of it the row should bleed 12 further right. It reads
-   * lopsided next to the roller under it, which does bleed: one strip ends at
-   * the edge and the other has air after it. A fixed pill with its names
-   * scrolling inside — the shape a chat app uses for the same job — wants both
-   * of its ends visible, so the bleed is dropped and the row is symmetric.
+   * The pill row reaches the edge of the screen, like the roller under it: the
+   * frame draws its `menu` 435 wide on a 375 phone and lets the screen cut it,
+   * so the row ends 12px further right than the panel's padding would put it.
    */
+  margin-right: fn.rem(-12);
   z-index: 1;
   display: flex;
   /* Only below: above the pill the panel's own 40px gap is the design's
