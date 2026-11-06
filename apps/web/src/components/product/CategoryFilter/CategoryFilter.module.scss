@@ -126,15 +126,17 @@
        pill was 3px too narrow and cancelled part of it out. */
     gap: fn.rem(30.3);
     /**
-     * 8 on the closing side, not 4: `menu` is 588 wide in the frame and ours
-     * came to 584. The frame's own row is 4 + 149 + 24 + 160 + 24 + 223 + 4,
-     * and its "Face Wash" is typed with a leading space — 4.3px of it — which
-     * is what our labels are short of. Spending it here puts the pill's
-     * rounded end where the design draws it and leaves 37 after the last label
-     * against the frame's 36, rather than moving every label to chase the same
-     * 4px.
+     * The padding stays 4 on every side, deliberately.
+     *
+     * It used to be 8 on the closing side: `menu` is 588 wide in the frame
+     * and ours came to 584, because the frame's "Face Wash" carries a
+     * leading space worth 4.3px that our label has not got, and spending
+     * that 4 here put the stadium's rounded end where the design draws it.
+     * The cost was a closing gap twice the one above and below, which the
+     * eye catches the moment the last chip is hovered and paints its own
+     * fill inside the frame. Four pixels of width across a 588px row it does
+     * not catch. So the row is 584 and the frame around the chips is even.
      */
-    padding-right: fn.rem(8);
   }
 }
 
