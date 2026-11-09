@@ -40,23 +40,31 @@
    * clickable, the empty halo does not intercept anything.
    */
   @include bp.from("lg") {
-    padding: fn.rem(28) fn.rem(32) fn.rem(40);
-    margin: fn.rem(-28) fn.rem(-32) fn.rem(-40);
-    pointer-events: none;
-
     /**
-     * The sideways padding is 64 of it, and `box-sizing` is `border-box`
-     * everywhere, so a plain `max-width: 100%` would hand those 64 to the
-     * padding and leave the row 64 less room before it starts to scroll.
-     * Measured, that moves the point where the stadium stops fitting its
-     * column from a viewport of about 1242 up to about 1320 — 1280 is a very
-     * ordinary laptop, and it would have begun scrolling for the sake of a
-     * shadow nobody asked to move. Handing the 64 back here keeps the
-     * threshold exactly where it has always been. The box then reaches 32
-     * past its column on each side, which is air: it paints nothing, and the
-     * column has more than that to spare at every width this branch covers.
+     * The padding is the shadow's own reach, side by side: `--shadow-soft`
+     * throws 28 past the left edge, 19 past the right, 24 up and 37 down, and
+     * a scroll box clips its content at its padding edge. Without the room
+     * the shadow was cut flush on all four sides and the stadium sat in a
+     * grey rectangle — the "strange shadow" the review caught. The negative
+     * margin hands every pixel of it back, so nothing moves.
+     *
+     * It is spent on the left only. `box-sizing` is `border-box`, so a plain
+     * `max-width: 100%` would give the padding the row's own width and make
+     * it scroll 48 earlier than it has to; `calc(100% + 28px)` buys back the
+     * left half. The right half is deliberately not bought back, because
+     * that is what decides where the row gets cut once it does scroll: the
+     * box ends exactly on the column's right edge, where the product rail
+     * below is cut too, so the two line up. Paying for both sides instead
+     * pushed the stadium 32 past the rail and read as a strip sticking out
+     * with its shadow sliced off in mid-air.
+     *
+     * The padded halo is invisible and would otherwise sit over the grid and
+     * swallow its clicks, hence `pointer-events` here and `auto` on the pill.
      */
-    max-width: calc(100% + #{fn.rem(64)});
+    padding: fn.rem(28) fn.rem(20) fn.rem(40) fn.rem(28);
+    margin: fn.rem(-28) 0 fn.rem(-40) fn.rem(-28);
+    max-width: calc(100% + #{fn.rem(28)});
+    pointer-events: none;
   }
 
   /**
