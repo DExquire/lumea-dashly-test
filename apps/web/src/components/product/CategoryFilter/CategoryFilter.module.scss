@@ -43,6 +43,20 @@
     padding: fn.rem(28) fn.rem(32) fn.rem(40);
     margin: fn.rem(-28) fn.rem(-32) fn.rem(-40);
     pointer-events: none;
+
+    /**
+     * The sideways padding is 64 of it, and `box-sizing` is `border-box`
+     * everywhere, so a plain `max-width: 100%` would hand those 64 to the
+     * padding and leave the row 64 less room before it starts to scroll.
+     * Measured, that moves the point where the stadium stops fitting its
+     * column from a viewport of about 1242 up to about 1320 — 1280 is a very
+     * ordinary laptop, and it would have begun scrolling for the sake of a
+     * shadow nobody asked to move. Handing the 64 back here keeps the
+     * threshold exactly where it has always been. The box then reaches 32
+     * past its column on each side, which is air: it paints nothing, and the
+     * column has more than that to spare at every width this branch covers.
+     */
+    max-width: calc(100% + #{fn.rem(64)});
   }
 
   /**
