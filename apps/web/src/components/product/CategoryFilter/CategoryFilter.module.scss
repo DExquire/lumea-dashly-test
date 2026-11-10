@@ -74,13 +74,22 @@
   }
 
   /**
-   * At 1280 the column is 617 against the stadium's 584, and it only grows
-   * from there, so above this width the row never scrolls and nothing can
-   * travel into the opening side's padding. That makes the shadow's 28 of
-   * left-hand reach free to take — handed back as margin, and with the width
-   * widened to match so the row's own space is not spent on it.
+   * The opening side's padding, taken back for every width the row fits in.
+   *
+   * It is only dangerous while the row scrolls, because then the stadium
+   * travels through it and is seen hanging that far past the column. The row
+   * stops fitting when the column drops under the stadium's 584, and the
+   * column runs at about 0.77 of the window — 420 at 1024, 478 at 1100, 617
+   * at 1280, 740 at 1440 — which puts that point at a window of about 1237.
+   *
+   * Hence 1240 rather than the `xl` of 1280: between the two the row still
+   * fits, and leaving the padding off there cut the shadow flat against the
+   * column's edge on a row that was standing perfectly still, which is the
+   * one place the cut has no excuse. `max-width` widens by the same 28, so
+   * the row's own space is not spent on it and the point where it starts to
+   * scroll does not move.
    */
-  @include bp.from("xl") {
+  @media (min-width: 1240px) {
     padding-left: fn.rem(28);
     margin-left: fn.rem(-28);
     max-width: calc(100% + #{fn.rem(28)});
