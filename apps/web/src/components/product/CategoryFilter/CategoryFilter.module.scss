@@ -68,26 +68,41 @@
      * swallow its clicks, hence `pointer-events` here and `auto` on the pill.
      */
     align-self: stretch;
-    padding: fn.rem(28) 0 fn.rem(40) fn.rem(28);
-    margin: fn.rem(-28) 0 fn.rem(-40) fn.rem(-28);
-    max-width: calc(100% + #{fn.rem(28)});
+    padding: fn.rem(28) fn.rem(20) fn.rem(40) fn.rem(28);
+    margin: fn.rem(-28) fn.rem(-20) fn.rem(-40) fn.rem(-28);
+    max-width: calc(100% + #{fn.rem(48)});
     pointer-events: none;
 
     /**
-     * The opening side's padding is room for the shadow and a road the pill
-     * travels down, and it cannot be both at once: at rest it has to show the
-     * stadium's cap and the shadow around it, and under the finger it would
-     * show the stadium itself, 28 outside the column that the rail's cards are
-     * cut at. So it is room while the row rests and nothing while it moves —
-     * the strip is clipped away for exactly as long as `data-scrolled` is set.
+     * The side padding is the shadow's own reach — 28 past the left edge, 19
+     * past the right — and it is also the only place the stadium can be seen
+     * outside its column, because a scroll box paints its content right up to
+     * its padding edge. The same strip therefore has to be room at one moment
+     * and nothing at the next.
      *
-     * Only the opening side is inset; the other three stay at 0, so the
-     * vertical room for the shadow is untouched. `clip-path` paints, it does
-     * not lay out, so neither the pill's position nor the scroll range moves
-     * when it comes and goes.
+     * It is room while the end that owns it is parked. At rest the opening cap
+     * sits on the column's left edge and draws its shadow into the left strip,
+     * while the closing end is still out in the right one and that strip is
+     * taken away; scrolled to the end the two swap. Mid-travel neither end is
+     * resting and both strips go, so the stadium is cut exactly on the lines
+     * the rail's first and last cards are cut on. A row that fits keeps both,
+     * because then nothing travels anywhere.
+     *
+     * `clip-path` paints rather than lays out, so neither the stadium's
+     * position nor the scroll range moves as the strips come and go, and the
+     * vertical room is never inset — the shadow above and below stays whole.
      */
-    &[data-scrolled] {
-      clip-path: inset(0 0 0 #{fn.rem(28)});
+    --clip-start: 0;
+    --clip-end: 0;
+
+    clip-path: inset(0 var(--clip-end) 0 var(--clip-start));
+
+    &:not([data-at-start]) {
+      --clip-start: #{fn.rem(28)};
+    }
+
+    &:not([data-at-end]) {
+      --clip-end: #{fn.rem(20)};
     }
   }
 

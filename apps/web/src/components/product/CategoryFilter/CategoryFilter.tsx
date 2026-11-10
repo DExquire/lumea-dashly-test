@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Category } from '@/types/content';
 import styles from './CategoryFilter.module.scss';
@@ -27,15 +27,45 @@ interface CategoryFilterProps {
  * the stadium on the scroll box itself pins it to the screen instead, and then
  * its end can never be reached.
  *
- * `data-scrolled` is the one piece of state here, and it exists because the
- * room kept beside the pill for its shadow is also room the pill travels
- * through: at rest it shows the stadium's cap and the shadow around it, and
- * the moment the row is dragged it would show the stadium itself, outside the
- * column the cards below are cut at. The flag lets the stylesheet hide that
- * strip for exactly as long as the row is off its resting position.
+ * `data-at-start` / `data-at-end` are the only state here, and they exist
+ * because the room kept beside the pill for its shadow is also room the pill
+ * is seen in. An end that is parked wants that room, to draw its cap and the
+ * shadow around it; an end that is mid-travel must not have it, or the stadium
+ * shows outside the column the cards below are cut at. The two flags let the
+ * stylesheet keep each strip for exactly as long as its end is resting there.
  */
 export function CategoryFilter({ categories, activeCategoryId, onSelect }: CategoryFilterProps) {
-  const [scrolled, setScrolled] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ atStart: true, atEnd: true });
+
+  /**
+   * Half a pixel of tolerance at both ends: a trackpad can leave the row on a
+   * fractional offset, and a flag that flipped there would flicker the strip.
+   * A row that does not overflow reads as resting at both ends, which is what
+   * it is — then neither strip is clipped and the shadow is whole all round.
+   */
+  const measure = useCallback(() => {
+    const box = boxRef.current;
+
+    if (!box) {
+      return;
+    }
+
+    const travel = box.scrollWidth - box.clientWidth;
+    const atStart = box.scrollLeft <= 0.5;
+    const atEnd = box.scrollLeft >= travel - 0.5;
+
+    setEdges((was) => (was.atStart === atStart && was.atEnd === atEnd ? was : { atStart, atEnd }));
+  }, []);
+
+  /* The row can start or stop overflowing without ever being scrolled — a
+     window resize does it, and so does the CMS gaining a category. */
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+
+    return () => window.removeEventListener('resize', measure);
+  }, [measure, categories.length]);
 
   if (categories.length === 0) {
     return null;
@@ -43,15 +73,11 @@ export function CategoryFilter({ categories, activeCategoryId, onSelect }: Categ
 
   return (
     <div
+      ref={boxRef}
       className={styles.root}
-      data-scrolled={scrolled || undefined}
-      onScroll={(event) => {
-        /* Half a pixel rather than zero: a trackpad can leave the row resting
-           on a fractional offset, and flipping the flag there would flicker. */
-        const off = event.currentTarget.scrollLeft > 0.5;
-
-        setScrolled((was) => (was === off ? was : off));
-      }}
+      data-at-start={edges.atStart || undefined}
+      data-at-end={edges.atEnd || undefined}
+      onScroll={measure}
     >
       <div className={styles.pill} role="group" aria-label="Product categories">
         {categories.map((category) => {
