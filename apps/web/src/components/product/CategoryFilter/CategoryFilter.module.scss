@@ -168,6 +168,21 @@
     box-shadow: var(--shadow-filter-mobile);
   }
 
+  /**
+   * Between `lg` and 1240 the row is wider than its column, so the scroll box
+   * holds no side padding — anything it held would be road the stadium
+   * travels down and hangs past the column in. Its left edge therefore sits
+   * flush against the clip, and the shadow's leftward layer was being sliced
+   * off on a straight vertical line. This drops that one layer for exactly
+   * that band; from 1240 up the row fits, the box takes its 28 back, and the
+   * full shadow returns.
+   */
+  @media (min-width: 1024px) and (max-width: 1239.98px) {
+    box-shadow:
+      inset 0 0 0 1px var(--color-hairline),
+      var(--shadow-soft-flush-left);
+  }
+
   @include bp.from("lg") {
     /* 30.3 between chips. Solved from the design's own positions: its active
        pill ends at 773.1, "Face Wash" starts at 803.8 and "Makeup Removers" at
