@@ -153,15 +153,7 @@
 
   @include bp.from("lg") {
     display: grid;
-    /**
-     * The steps column is 500 in the frame, and fixed at 500 it starved the
-     * products column everywhere below it: 420 at 1024 against a category row
-     * of 584, so the row had to scroll and its stadium was cut at the column's
-     * edge at every width between the two frames. Interpolated instead, the
-     * products column never drops under 605 — 584 for the row and 21 for the
-     * shadow — and at 1440 the frame's own 500 is restored exactly.
-     */
-    grid-template-columns: mx.fluid(315, 500, 1024, 1440) minmax(0, 1fr);
+    grid-template-columns: fn.rem(500) minmax(0, 1fr);
     align-items: start;
   }
 }

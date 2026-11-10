@@ -70,6 +70,22 @@
     5px 14px 9px rgba(156, 182, 186, 0.05), 8px 26px 11px rgba(156, 182, 186, 0.01),
     -12px -8px 16px rgba(154, 173, 167, 0.16);
 
+  /**
+   * The same shadow for an element whose left edge is flush against a clip.
+   *
+   * Only the last layer of `--shadow-soft` throws leftward, and it throws
+   * hard: 12 of offset under 16 of blur at 16% opacity, so it reaches 28 past
+   * the edge and is the one layer you actually see there. Cut flat it leaves
+   * a grey band ending on a straight vertical line, which reads as a defect
+   * rather than as a shadow. Dropping it leaves four layers whose own left
+   * reach is 3 to 5px at 1 to 10% opacity — a cut nobody can see — while
+   * below and to the right the shadow is unchanged, because every one of
+   * those layers throws down and right.
+   */
+  --shadow-soft-flush-left:
+    1px 2px 4px rgba(156, 182, 186, 0.1), 2px 6px 7px rgba(156, 182, 186, 0.09),
+    5px 14px 9px rgba(156, 182, 186, 0.05), 8px 26px 11px rgba(156, 182, 186, 0.01);
+
   /* Cards and other large surfaces */
   --shadow-card:
     1px 2px 4px rgba(156, 182, 186, 0.08), -8px 12px 12px rgba(156, 182, 186, 0.09),

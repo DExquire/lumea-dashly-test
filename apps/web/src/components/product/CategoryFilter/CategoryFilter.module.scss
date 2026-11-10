@@ -43,31 +43,56 @@
     /**
      * The box is as wide as the column, not as wide as the stadium.
      *
-     * Shrink-to-fit looks tidier and is wrong here: a scroll box ends its
-     * travel when the content's edge meets its own, so room left beside the
-     * pill is room the pill travels through. On the closing side that room is
-     * trailing scroll space and the stadium parks short of the column's edge
-     * while the rail below parks flush against it. Stretched to the column,
-     * both ends park exactly on its edges, under the rail's.
+     * Shrink-to-fit looks tidier and is wrong here, because a scroll box ends
+     * its travel when the content's edge meets its own: any room left beside
+     * the pill — padding, margin, anything — is room the pill travels through
+     * and is seen in. Room on the closing side becomes trailing scroll space,
+     * and the stadium parks short of the column's edge while the rail below
+     * parks flush against it; room on the opening side lets the stadium hang
+     * that far past the column's left edge once the row is scrolled, while the
+     * rail's first card is cut dead on it. Both read as a strip that does not
+     * line up with the cards under it, which is what the review kept catching.
      *
-     * The side padding is the shadow's own reach — 28 past the left edge, and
-     * the right-hand 19 lives in the slack the column keeps over the row's 584
-     * — and `calc(100% + 28px)` widens the box by what the left padding takes,
-     * so the row's own width is not spent on it. None of it is travelled
-     * through, because the column is sized to hold the row at every width
-     * this branch covers; see the grid in `HowItWorks`.
+     * Stretched to the column with no side room, both ends park exactly on the
+     * column's edges, under the rail's. The price is the shadow: its 19 of
+     * right-hand reach lives in whatever slack the column has left over, and
+     * on the opening side it is simply cut at the column's edge — the same cut
+     * the rail's first card already takes there, and `bp.from("xl")` below
+     * buys it back for every width where the row cannot scroll anyway.
      *
-     * Vertically the same trick against the shadow's 24 up and 37 down, handed
-     * back as margin so the row's height is unchanged.
+     * Vertically there is no such conflict: nothing travels up or down, so the
+     * shadow's 24 up and 37 down are taken as padding and handed back as
+     * margin, and the row's height is unchanged.
      *
      * The padded halo is invisible and would otherwise sit over the grid and
      * swallow its clicks, hence `pointer-events` here and `auto` on the pill.
      */
     align-self: stretch;
-    padding: fn.rem(28) 0 fn.rem(40) fn.rem(28);
-    margin: fn.rem(-28) 0 fn.rem(-40) fn.rem(-28);
-    max-width: calc(100% + #{fn.rem(28)});
+    padding-block: fn.rem(28) fn.rem(40);
+    margin-block: fn.rem(-28) fn.rem(-40);
     pointer-events: none;
+  }
+
+  /**
+   * The opening side's padding, taken back for every width the row fits in.
+   *
+   * It is only dangerous while the row scrolls, because then the stadium
+   * travels through it and is seen hanging that far past the column. The row
+   * stops fitting when the column drops under the stadium's 584, and the
+   * column runs at about 0.77 of the window — 420 at 1024, 478 at 1100, 617
+   * at 1280, 740 at 1440 — which puts that point at a window of about 1237.
+   *
+   * Hence 1240 rather than the `xl` of 1280: between the two the row still
+   * fits, and leaving the padding off there cut the shadow flat against the
+   * column's edge on a row that was standing perfectly still, which is the
+   * one place the cut has no excuse. `max-width` widens by the same 28, so
+   * the row's own space is not spent on it and the point where it starts to
+   * scroll does not move.
+   */
+  @media (min-width: 1240px) {
+    padding-left: fn.rem(28);
+    margin-left: fn.rem(-28);
+    max-width: calc(100% + #{fn.rem(28)});
   }
 
   /**
@@ -141,6 +166,21 @@
    */
   @include bp.until("lg") {
     box-shadow: var(--shadow-filter-mobile);
+  }
+
+  /**
+   * Between `lg` and 1240 the row is wider than its column, so the scroll box
+   * holds no side padding — anything it held would be road the stadium
+   * travels down and hangs past the column in. Its left edge therefore sits
+   * flush against the clip, and the shadow's leftward layer was being sliced
+   * off on a straight vertical line. This drops that one layer for exactly
+   * that band; from 1240 up the row fits, the box takes its 28 back, and the
+   * full shadow returns.
+   */
+  @media (min-width: 1024px) and (max-width: 1239.98px) {
+    box-shadow:
+      inset 0 0 0 1px var(--color-hairline),
+      var(--shadow-soft-flush-left);
   }
 
   @include bp.from("lg") {
