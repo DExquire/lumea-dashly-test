@@ -72,6 +72,23 @@
     margin: fn.rem(-28) 0 fn.rem(-40) fn.rem(-28);
     max-width: calc(100% + #{fn.rem(28)});
     pointer-events: none;
+
+    /**
+     * The opening side's padding is room for the shadow and a road the pill
+     * travels down, and it cannot be both at once: at rest it has to show the
+     * stadium's cap and the shadow around it, and under the finger it would
+     * show the stadium itself, 28 outside the column that the rail's cards are
+     * cut at. So it is room while the row rests and nothing while it moves —
+     * the strip is clipped away for exactly as long as `data-scrolled` is set.
+     *
+     * Only the opening side is inset; the other three stay at 0, so the
+     * vertical room for the shadow is untouched. `clip-path` paints, it does
+     * not lay out, so neither the pill's position nor the scroll range moves
+     * when it comes and goes.
+     */
+    &[data-scrolled] {
+      clip-path: inset(0 0 0 #{fn.rem(28)});
+    }
   }
 
   /**
