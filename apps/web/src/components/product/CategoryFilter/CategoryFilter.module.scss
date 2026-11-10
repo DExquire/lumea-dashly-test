@@ -41,27 +41,33 @@
    */
   @include bp.from("lg") {
     /**
-     * The padding is the shadow's own reach, side by side: `--shadow-soft`
-     * throws 28 past the left edge, 19 past the right, 24 up and 37 down, and
-     * a scroll box clips its content at its padding edge. Without the room
-     * the shadow was cut flush on all four sides and the stadium sat in a
-     * grey rectangle — the "strange shadow" the review caught. The negative
-     * margin hands every pixel of it back, so nothing moves.
+     * The box is as wide as the column, not as wide as the stadium.
      *
-     * It is spent on the left only. `box-sizing` is `border-box`, so a plain
-     * `max-width: 100%` would give the padding the row's own width and make
-     * it scroll 48 earlier than it has to; `calc(100% + 28px)` buys back the
-     * left half. The right half is deliberately not bought back, because
-     * that is what decides where the row gets cut once it does scroll: the
-     * box ends exactly on the column's right edge, where the product rail
-     * below is cut too, so the two line up. Paying for both sides instead
-     * pushed the stadium 32 past the rail and read as a strip sticking out
-     * with its shadow sliced off in mid-air.
+     * Shrink-to-fit looks tidier and is wrong here, because a scroll box ends
+     * its travel when the content's right edge meets its own: any room left
+     * to the right of the pill — padding, margin, anything — becomes trailing
+     * scroll space, and the stadium parks that far short of the column's edge
+     * while the product rail below parks flush against it. Stretched, there
+     * is no trailing space at all: the pill scrolls until its closing cap sits
+     * exactly on the column's edge, under the last card's.
+     *
+     * The free width to the right of the pill is then the column's own slack —
+     * 156 at 1440, 33 at 1280 — which is where the shadow's 19 of right-hand
+     * reach lives while the row still fits. Once the row is wide enough to
+     * scroll there is no slack and the closing edge is clipped, exactly as the
+     * rail's last card is clipped at the same line.
+     *
+     * Left of the pill the shadow throws 28, so the box starts 28 earlier and
+     * hands it straight back as margin; `calc(100% + 28px)` lets the stretched
+     * width cover those 28 instead of losing them to the padding, which keeps
+     * the point where the row starts to scroll where it has always been.
+     * Vertically the same trick, against the shadow's 24 up and 37 down.
      *
      * The padded halo is invisible and would otherwise sit over the grid and
      * swallow its clicks, hence `pointer-events` here and `auto` on the pill.
      */
-    padding: fn.rem(28) fn.rem(20) fn.rem(40) fn.rem(28);
+    align-self: stretch;
+    padding: fn.rem(28) 0 fn.rem(40) fn.rem(28);
     margin: fn.rem(-28) 0 fn.rem(-40) fn.rem(-28);
     max-width: calc(100% + #{fn.rem(28)});
     pointer-events: none;
